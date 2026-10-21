@@ -28,3 +28,14 @@ groupToggle.forEach((toggle) => {
         toggle.closest(".page-group").classList.toggle("page-group-collapsed");
     });
 });
+// Group menu position
+const groupMenu = document.querySelector("#group-menu");
+const groupMenuButtons = document.querySelectorAll(".group-menu-button");
+
+groupMenuButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+        const rect = button.getBoundingClientRect();
+        groupMenu.style.top = `${rect.bottom + 4}px`;
+        groupMenu.style.left = `${rect.left}px`;
+    });
+});
