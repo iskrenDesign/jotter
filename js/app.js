@@ -86,3 +86,19 @@ document.addEventListener("focusout", (event) => {
         event.target.contentEditable = "false";
     }
 });
+// delete Group
+const deleteGroupButton = groupMenu.querySelector('[data-action="delete-group"]');
+deleteGroupButton.addEventListener("click", () => {
+    groupMenu.hidePopover();
+    const pageCount = activeGroup.querySelectorAll(".page-item").length;
+    if (pageCount > 0 && !confirm("Are you sure you want to delete this group and its ${pageCount}?")) return;
+    activeGroup.remove();
+})
+
+// Delete page
+const deletePageButton = pageMenu.querySelector('[data-action="delete-page"]');
+
+deletePageButton.addEventListener("click", () => {
+    pageMenu.hidePopover();
+    activePage.remove();
+});
