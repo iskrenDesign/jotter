@@ -39,3 +39,13 @@ groupMenuButtons.forEach((button) => {
         groupMenu.style.left = `${rect.left}px`;
     });
 });
+// Page menu option
+const pageMenu = document.querySelector("#page-menu");
+
+document.addEventListener("click", (event) => {
+    const button = event.target.closest(".page-item-menu");
+    if (!button) return;
+    const rect = button.getBoundingClientRect();
+    pageMenu.style.top = `${rect.bottom + 4}px`;
+    pageMenu.style.left = `${rect.left}px`;
+});

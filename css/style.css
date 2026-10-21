@@ -234,6 +234,7 @@ body {
         }
     }
 }
+/* Group menu */
 .dropdown-menu {
     width: 20.4375rem;
     margin: 0;
@@ -281,3 +282,4 @@ body {
     color: var(--color-text-error);
     border-top: 1px solid var(--color-border-default);
 }
+/* Page menu */

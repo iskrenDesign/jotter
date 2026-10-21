@@ -14,7 +14,7 @@
                 <span class="page-item-title">Untitled</span>
                 <time datetime="" class="page-item-date">00.00.0000</time>
             </div>
-            <button class="icon-button page-item-menu" aria-label="Page options"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis-vertical preview-icon"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+            <button class="icon-button page-item-menu" aria-label="Page options" popovertarget="page-menu"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis-vertical preview-icon"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
         </li>
     </template>
     <div class="app">
@@ -61,6 +61,7 @@
             </header>
          </main>
     </div>
+    <!-- Group menu -->
     <div class="dropdown-menu" id="group-menu" popover role="menu">
         <button class="menu-item" role="menuitem">
             <span class="menu-item-icon">
@@ -81,6 +82,29 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             </span>
             <span class="menu-item-label">Delete group</span>
+            <kbd class="menu-item-shortcut">Ctrl + D</kbd>
+        </button>
+    </div>
+    <!-- Page menu -->
+    <div class="dropdown-menu" id="page-menu" popover role="menu">
+        <button class="menu-item" role="menuitem">
+            <span class="menu-item-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>
+            </span>
+            <span class="menu-item-label">Rename page</span>
+            <kbd class="menu-item-shortcut">Ctrl + R</kbd>
+        </button>
+        <button class="menu-item menu-item-move" role="menuitem">
+            <span class="menu-item-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-folder-input preview-icon"><path d="M2 9V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-1"/><path d="M2 13h10"/><path d="m9 16 3-3-3-3"/></svg>
+            </span>
+            <span class="menu-item-label">Move to a group</span>
+        </button>
+        <button class="menu-item menu-item-danger" role="menuitem">
+            <span class="menu-item-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </span>
+            <span class="menu-item-label">Delete page</span>
             <kbd class="menu-item-shortcut">Ctrl + D</kbd>
         </button>
     </div>
