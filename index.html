@@ -8,6 +8,15 @@
     <script src="js/app.js" defer></script>
 </head>
 <body>
+    <template id="page-item-template">
+        <li class="page-item">
+            <div class="page-item-text">
+                <span class="page-item-title">Untitled</span>
+                <time datetime="" class="page-item-date">00.00.0000</time>
+            </div>
+            <button class="icon-button page-item-menu" aria-label="Page options"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis-vertical preview-icon"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+        </li>
+    </template>
     <div class="app">
         <aside class="sidebar">
             <header class="sidebar-header">
@@ -19,8 +28,23 @@
             <div class="sidebar-pages">
                 <label for="" class="search-field">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search preview-icon"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
-                <input type="search" class="search-input" placeholder="Search..." aria-label="Search pages">
-            </label>
+                    <input type="search" class="search-input" placeholder="Search..." aria-label="Search pages">
+                </label>
+                <section class="page-group">
+                    <div class="page-group-header">
+                        <button class="page-group-toggle" aria-expanded="true">
+                            <span class="page-group-title">New group</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down preview-icon"><path d="m6 9 6 6 6-6"/></svg>
+                        </button>
+                        <div class="page-group-actions">
+                            <button class="icon-button add-page-button" aria-label="New page"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus preview-icon"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+                            <button class="icon-button" aria-label="Group options"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis-vertical preview-icon"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+                        </div>
+                    </div>
+                    <ul class="page-list">
+                        
+                    </ul>
+                </sections>
             </div>
         </aside>
         <!-- Main content -->
