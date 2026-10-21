@@ -1,11 +1,11 @@
+/* Font */
+@font-face {
+    font-family: "Sofia Sans";
+    src: url("../fonts/SofiaSans-VariableFont_wght.ttf");
+    font-weight: 100 900;
+    font-display: swap;
+}
 :root {
-    /* Font */
-    @font-face {
-        font-family: "Sofia Sans";
-        src: url(".../fonts/SofiaSans-VariableFont_wght.ttf");
-        font-weight: 100 900;
-        font-display: swap;
-    }
     /* Font Styles */
     --font-body: "Sofia Sans", sans-serif;
     --font-heading: "Sofia Sans", sans-serif;
@@ -69,6 +69,9 @@ body {
         padding: var(--space-16);
         background-color: var(--color-background-page-subtle);
         border-right: 1px solid var(--color-border-default);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-16);
     }
     .sidebar-header {
         display: flex;
@@ -110,11 +113,9 @@ body {
         flex: 1 0 0;
     }
     .main-header {
-        height: 2.5rem;
+        height: 2rem;
         padding: var(--space-8) var(--space-16);
         background-color: #F0F0F0;
-    }
-    .main-content .main-header {
         display: flex;
         align-items: center;
         gap: var(--space-8);
@@ -123,5 +124,38 @@ body {
         font-size: var(--font-size-lg);
         font-weight: 400;
         line-height: 1.5rem;
+    }
+    .sidebar-pages {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-16);
+    }
+    /* Search */
+    .search-field {
+        display: flex;
+        align-items: center;
+        gap: var(--space-12);
+        padding: var(--space-16) var(--space-16) var(--space-12);
+        border: 1px solid var(--color-border-default);
+        border-radius: var(--radius-8);
+        background-color: var(--color-surface-transparent);
+        .search-input {
+            border: none;
+            outline: none;
+            background: none;
+            padding: 0;
+            flex: 1;
+            font: inherit;
+            font-size: var(--font-size-lg);
+            line-height: 1rem;
+            color: var(--color-text-primary);
+            &::placeholder {
+                color: var(--color-text-placeholder);
+            }
+            
+        }
+        &:focus-within {
+            border-color: var(--color-border-brand);
+        }
     }
 }
