@@ -32,10 +32,12 @@
                 </label>
                 <section class="page-group">
                     <div class="page-group-header">
-                        <button class="page-group-toggle" aria-expanded="true">
-                            <span class="page-group-title">New group</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                        </button>
+                        <div class="page-group-name">
+                            <span class="page-group-title" spellcheck="false">New group</span>
+                            <button class="page-group-toggle" aria-expanded="true" aria-label="Collapse group">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                            </button>
+                        </div>
                         <div class="page-group-actions">
                             <button class="icon-button add-page-button" aria-label="New page">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
@@ -48,7 +50,7 @@
                     <ul class="page-list">
                         
                     </ul>
-                </sections>
+                </section>
             </div>
         </aside>
         <!-- Main content -->
@@ -63,21 +65,21 @@
     </div>
     <!-- Group menu -->
     <div class="dropdown-menu" id="group-menu" popover role="menu">
-        <button class="menu-item" role="menuitem">
+        <button class="menu-item" role="menuitem" data-action="rename-group">
             <span class="menu-item-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>
             </span>
             <span class="menu-item-label">Rename</span>
             <kbd class="menu-item-shortcut">Ctrl + R</kbd>
         </button>
-        <button class="menu-item" role="menuitem">
+        <button class="menu-item" role="menuitem" data-action="add-group">
             <span class="menu-item-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
             </span>
             <span class="menu-item-label">Add new group</span>
             <kbd class="menu-item-shortcut">Ctrl + Shift + N</kbd>
         </button>
-        <button class="menu-item menu-item-danger" role="menuitem">
+        <button class="menu-item menu-item-danger" role="menuitem" data-action="delete-group">
             <span class="menu-item-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             </span>
@@ -87,20 +89,20 @@
     </div>
     <!-- Page menu -->
     <div class="dropdown-menu" id="page-menu" popover role="menu">
-        <button class="menu-item" role="menuitem">
+        <button class="menu-item" role="menuitem" data-action="rename-page">
             <span class="menu-item-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>
             </span>
             <span class="menu-item-label">Rename page</span>
             <kbd class="menu-item-shortcut">Ctrl + R</kbd>
         </button>
-        <button class="menu-item menu-item-move" role="menuitem">
+        <button class="menu-item menu-item-move" role="menuitem" data-action="move-page">
             <span class="menu-item-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-folder-input preview-icon"><path d="M2 9V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-1"/><path d="M2 13h10"/><path d="m9 16 3-3-3-3"/></svg>
             </span>
             <span class="menu-item-label">Move to a group</span>
         </button>
-        <button class="menu-item menu-item-danger" role="menuitem">
+        <button class="menu-item menu-item-danger" role="menuitem" data-action="delete-page">
             <span class="menu-item-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             </span>

@@ -115,18 +115,21 @@ body {
         padding: var(--space-8) var(--space-8) var(--space-12) var(--space-16);
         border-radius: var(--radius-4);
     }
-    .page-group-toggle {
-        border: none;
-        background: none;
-        padding: 0;
-        font: inherit;
-        cursor: pointer;
+    .page-group-name {
         display: flex;
         align-items: center;
         gap: var(--space-4);
         font-size: var(--font-size-md);
         line-height: 1rem;
         color: var(--color-text-secondary);
+    }
+    .page-group-toggle {
+        display: flex;
+        padding: 0;
+        border: none;
+        background: none;
+        color: inherit;
+        cursor: pointer;
     }
     .page-group-actions {
         display: flex;
@@ -282,4 +285,9 @@ body {
     color: var(--color-text-error);
     border-top: 1px solid var(--color-border-default);
 }
-/* Page menu */
+/* Editing a title */
+[contenteditable="true"] {
+    outline: 1px solid var(--color-border-brand);
+    outline-offset: 2px;
+    border-radius: var(--radius-4);
+}
