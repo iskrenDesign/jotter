@@ -133,6 +133,14 @@ body {
             padding: 0;
         }
     }
+    .page-group-collapsed {
+        .page-list {
+            display: none;
+        }
+        .page-group-toggle svg {
+            transform: rotate(180deg);
+        }
+    }
     /* Page list items */
     .page-list {
         list-style: none;
