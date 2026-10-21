@@ -60,3 +60,33 @@ body {
     color: var(--color-text-primary);
     font-family: var(--font-body);
 }
+/* App styles */
+.app {
+    display: flex;
+    height: 100vh;
+    .sidebar {
+        width: 22.5rem;
+        padding: var(--space-16);
+        background-color: var(--color-background-page-subtle);
+        border-right: 1px solid var(--color-border-default);
+    }
+    .sidebar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 3rem;
+        padding: 0 var(--space-8);
+    }
+    .icon-button {
+        display: flex;
+        padding: var(--space-4);
+        border: none;
+        background: none;
+        border-radius: var(--radius-4);
+        color: var(--color-icon-default);
+        cursor: pointer;
+        &:hover {
+            background-color: var(--color-surface-hover);
+        }
+    }
+}
