@@ -2,4 +2,24 @@
     /* Background */
     --color-background-page: #FAFAFA;
     --color-background-page-subtle: #F0F0F0;
+    /* Surface */
+    --color-transparent: #FFFFFF1A;
+    --color-brand: #4E61F6;
+    --color-brand-hover: #3745AF;
+    --color-hover: #0000001A;
+    --color-disabled: #0000001A;
+    /* Text */
+    --color-primary: #1F1F1F;
+    --color-secondary: #292929;
+    --color-supporting: #474747;
+    --color-placeholder: #7A7A7A;
+    --color-disabled: #A3A3A3;
+    --color-on-surface: #FFFFFF;
+    /* Icons */
+    --color-default: #292929;
+    --color-disabled: #A3A3A3;
+    --color-on-surface: #FFFFFF;
+    /* Border */
+    --color-default: #CCCCCC;
+    --color-brand: #4E61F6;
 }
