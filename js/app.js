@@ -10,10 +10,9 @@ toggleButtons.forEach((button) => {
 const pageTemplate = document.querySelector("#page-item-template");
 const addPageButton = document.querySelectorAll(".add-page-button");
 
-// Open toggle for page groups
-
 // Group menu position
 const groupMenu = document.querySelector("#group-menu");
+let activeGroup = null;
 
 // Page menu option
 const pageMenu = document.querySelector("#page-menu");
@@ -85,9 +84,10 @@ document.addEventListener("focusout", (event) => {
         event.target.contentEditable = "false";
     }
 });
-// delete Group
+// Delete Group
 const deleteGroupButton = groupMenu.querySelector('[data-action="delete-group"]');
 deleteGroupButton.addEventListener("click", () => {
+    if (document.querySelectorAll(".page-group").length === 1) return;
     groupMenu.hidePopover();
     const pageCount = activeGroup.querySelectorAll(".page-item").length;
     if (pageCount > 0 && !confirm("Are you sure you want to delete this group and its ${pageCount}?")) return;
@@ -100,4 +100,26 @@ const deletePageButton = pageMenu.querySelector('[data-action="delete-page"]');
 deletePageButton.addEventListener("click", () => {
     pageMenu.hidePopover();
     activePage.remove();
+});
+
+// Create groups
+const groupTemplate = document.querySelector("#page-group-template");
+const sidebarPages = document.querySelector(".sidebar-pages");
+
+function createGroup() {
+    const newGroup = groupTemplate.content.cloneNode(true);
+    const group = newGroup.querySelector(".page-group");
+    sidebarPages.append(newGroup);
+    return group;
+}
+
+createGroup();
+
+// Add new group
+const addGroupButton = groupMenu.querySelector('[data-action="add-group"]');
+
+addGroupButton.addEventListener("click", () => {
+    groupMenu.hidePopover();
+    const group = createGroup();
+    startRename(group.querySelector(".page-group-title"));
 });

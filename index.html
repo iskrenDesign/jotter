@@ -17,6 +17,27 @@
             <button class="icon-button page-item-menu" aria-label="Page options" popovertarget="page-menu"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis-vertical preview-icon"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
         </li>
     </template>
+    <template id="page-group-template">
+        <section class="page-group">
+            <div class="page-group-header">
+                <div class="page-group-name">
+                    <span class="page-group-title" spellcheck="false">New group</span>
+                     <button class="page-group-toggle" aria-expanded="true" aria-label="Collapse group">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>
+                </div>
+                <div class="page-group-actions">
+                    <button class="icon-button add-page-button" aria-label="New page">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                    </button>
+                    <button class="icon-button group-menu-button" aria-label="Group options" popovertarget="group-menu">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                    </button>
+                </div>
+             </div>
+            <ul class="page-list"></ul>
+        </section>
+    </template>
     <div class="app">
         <aside class="sidebar">
             <header class="sidebar-header">
@@ -30,27 +51,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search preview-icon"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
                     <input type="search" class="search-input" placeholder="Search..." aria-label="Search pages">
                 </label>
-                <section class="page-group">
-                    <div class="page-group-header">
-                        <div class="page-group-name">
-                            <span class="page-group-title" spellcheck="false">New group</span>
-                            <button class="page-group-toggle" aria-expanded="true" aria-label="Collapse group">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                            </button>
-                        </div>
-                        <div class="page-group-actions">
-                            <button class="icon-button add-page-button" aria-label="New page">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                            </button>
-                            <button class="icon-button group-menu-button" aria-label="Group options" popovertarget="group-menu">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                            </button>
-                        </div>
-                    </div>
-                    <ul class="page-list">
-                        
-                    </ul>
-                </section>
+                
             </div>
         </aside>
         <!-- Main content -->
