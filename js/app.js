@@ -187,3 +187,35 @@ document.addEventListener("click", (event) => {
     if (!page || event.target.closest(".page-item-menu")) return;
     selectPage(page);
 });
+
+// Keyboard shortcuts
+let hoveredItem = null;
+
+document.addEventListener("mouseover", (event) => {
+    hoveredItem = event.target.closest(".page-item, .page-group-header");
+});
+
+document.addEventListener("keydown", (event) => {
+    if (!event.ctrlKey || event.target.isContentEditable || event.target.matches("input")) return;
+    const key = event.key.toLowerCase();
+
+    if (key === "n" && event.shiftKey) {
+        event.preventDefault();
+        addGroupButton.click();
+        return;
+    }
+
+    const target = hoveredItem || selectedPage;
+    if (!target || (key !== "r" && key !== "d")) return;
+    event.preventDefault();
+
+    if (target.matches(".page-item")) {
+        activePage = target;
+        if (key === "r") renamePageButton.click();
+        if (key === "d") deletePageButton.click();
+    } else {
+        activeGroup = target.closest(".page-group");
+        if (key === "r") renameGroupButton.click();
+        if (key === "d") deleteGroupButton.click();
+    }
+});
