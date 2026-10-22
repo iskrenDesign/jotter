@@ -51,6 +51,7 @@ document.addEventListener("click", (event) => {
     const rect = button.getBoundingClientRect();
     pageMenu.style.top = `${rect.bottom + 4}px`;
     pageMenu.style.left = `${rect.left}px`;
+    pageMenu.style.right = "auto";
     activePage = button.closest(".page-item");
     pageMenu.querySelector(".menu-item-move").hidden = document.querySelectorAll(".page-group").length < 2;
 });
@@ -98,6 +99,7 @@ deleteGroupButton.addEventListener("click", () => {
     groupMenu.hidePopover();
     const pageCount = activeGroup.querySelectorAll(".page-item").length;
     if (pageCount > 0 && !confirm("Are you sure you want to delete this group and its ${pageCount}?")) return;
+    if (activeGroup.contains(selectedPage)) clearSelection();
     activeGroup.remove();
 })
 
@@ -106,10 +108,7 @@ const deletePageButton = pageMenu.querySelector('[data-action="delete-page"]');
 
 deletePageButton.addEventListener("click", () => {
     pageMenu.hidePopover();
-       if (activePage === selectedPage) {
-       selectedPage = null;
-       pageTitle.textContent = "";
-    }
+    if (activePage === selectedPage) clearSelection();
     activePage.remove();
 });
 
@@ -154,7 +153,12 @@ const movePageButton = pageMenu.querySelector('[data-action="move-page"]');
 movePageButton.addEventListener("click", () => {
     const rect = movePageButton.getBoundingClientRect();
     moveMenu.style.top = `${rect.top}px`;
-    moveMenu.style.left = `${pageMenu.getBoundingClientRect().right + 4}px`;
+    const menuRect = pageMenu.getBoundingClientRect();
+    if (menuRect.right + 4 + menuRect.width <= window.innerWidth) {
+        moveMenu.style.left = `${menuRect.right + 4}px`;
+    } else {
+        moveMenu.style.left = `${menuRect.left - menuRect.width - 4}px`;
+    }
 
     moveMenu.replaceChildren();
     const currentGroup = activePage.closest(".page-group");
@@ -186,6 +190,7 @@ document.addEventListener("click", (event) => {
     const page = event.target.closest(".page-item");
     if (!page || event.target.closest(".page-item-menu")) return;
     selectPage(page);
+    headerPageMenu.hidden = false;
 });
 
 // Keyboard shortcuts
@@ -219,3 +224,21 @@ document.addEventListener("keydown", (event) => {
         if (key === "d") deleteGroupButton.click();
     }
 });
+
+// Page menu in the main header
+const headerPageMenu = document.querySelector(".header-page-menu");
+
+headerPageMenu.addEventListener("click", () => {
+    const rect = headerPageMenu.getBoundingClientRect();
+    pageMenu.style.top = `${rect.bottom + 4}px`;
+    pageMenu.style.left = "auto";
+    pageMenu.style.right = `${window.innerWidth - rect.right}px`;
+    activePage = selectedPage;
+    pageMenu.querySelector(".menu-item-move").hidden = document.querySelectorAll(".page-group").length < 2;
+});
+
+function clearSelection() {
+    selectedPage = null;
+    pageTitle.textContent = "";
+    headerPageMenu.hidden = true;
+}
