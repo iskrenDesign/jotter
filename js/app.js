@@ -51,6 +51,7 @@ document.addEventListener("click", (event) => {
     pageMenu.style.top = `${rect.bottom + 4}px`;
     pageMenu.style.left = `${rect.left}px`;
     activePage = button.closest(".page-item");
+    pageMenu.querySelector(".menu-item-move").hidden = document.querySelectorAll(".page-group").length < 2;
 });
 
 // Rename
@@ -136,5 +137,30 @@ searchInput.addEventListener("input", () => {
     document.querySelectorAll(".page-item").forEach((page) => {
         const title = page.querySelector(".page-item-title").textContent.toLowerCase();
         page.hidden = !title.includes(keyword);
+    });
+});
+
+// Move page to group
+const moveMenu = document.querySelector("#move-menu");
+const moveItemTemplate = document.querySelector("#move-item-template");
+const movePageButton = pageMenu.querySelector('[data-action="move-page"]');
+
+movePageButton.addEventListener("click", () => {
+    const rect = movePageButton.getBoundingClientRect();
+    moveMenu.style.top = `${rect.top}px`;
+    moveMenu.style.left = `${pageMenu.getBoundingClientRect().right + 4}px`;
+
+    moveMenu.replaceChildren();
+    const currentGroup = activePage.closest(".page-group");
+
+    document.querySelectorAll(".page-group").forEach((group) => {
+        if (group === currentGroup) return;
+        const item = moveItemTemplate.content.cloneNode(true);
+        item.querySelector(".menu-item-label").textContent = group.querySelector(".page-group-title").textContent;
+        item.querySelector(".menu-item").addEventListener("click", () => {
+            group.querySelector(".page-list").append(activePage);
+            pageMenu.hidePopover();
+        });
+        moveMenu.append(item);
     });
 });
