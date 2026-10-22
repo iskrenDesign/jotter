@@ -161,6 +161,10 @@ body {
         &:hover {
             background-color: var(--color-surface-hover);
         }
+        cursor: pointer;
+        .page-item[aria-current="page"] {
+            background-color: var(--color-surface-hover);
+        }
     }
     .page-item-text {
         display: flex;
@@ -200,6 +204,7 @@ body {
         gap: var(--space-8);
     }
     .page-title {
+        flex: 1;
         font-size: var(--font-size-lg);
         font-weight: 400;
         line-height: 1.5rem;
