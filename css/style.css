@@ -291,3 +291,7 @@ body {
     outline-offset: 2px;
     border-radius: var(--radius-4);
 }
+/* Hidden elements */
+[hidden] {
+    display: none !important;
+}
