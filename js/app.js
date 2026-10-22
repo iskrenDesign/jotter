@@ -6,6 +6,7 @@ toggleButtons.forEach((button) => {
         app.classList.toggle("sidebar-collapsed");
     });
 });
+
 // Page item template
 const pageTemplate = document.querySelector("#page-item-template");
 const addPageButton = document.querySelectorAll(".add-page-button");
@@ -51,6 +52,7 @@ document.addEventListener("click", (event) => {
     pageMenu.style.left = `${rect.left}px`;
     activePage = button.closest(".page-item");
 });
+
 // Rename
 function startRename(title) {
     title.contentEditable = "true";
@@ -71,6 +73,7 @@ renameGroupButton.addEventListener("click", () => {
     groupMenu.hidePopover();
     startRename(activeGroup.querySelector(".page-group-title"));
 });
+
 // Finish editing: Enter or click elsewhere
 document.addEventListener("keydown", (event) => {
     if (event.key === "Enter" && event.target.isContentEditable) {
@@ -84,6 +87,7 @@ document.addEventListener("focusout", (event) => {
         event.target.contentEditable = "false";
     }
 });
+
 // Delete Group
 const deleteGroupButton = groupMenu.querySelector('[data-action="delete-group"]');
 deleteGroupButton.addEventListener("click", () => {
@@ -122,4 +126,15 @@ addGroupButton.addEventListener("click", () => {
     groupMenu.hidePopover();
     const group = createGroup();
     startRename(group.querySelector(".page-group-title"));
+});
+
+// Search
+const searchInput = document.querySelector(".search-input");
+
+searchInput.addEventListener("input", () => {
+    const keyword = searchInput.value.trim().toLowerCase();
+    document.querySelectorAll(".page-item").forEach((page) => {
+        const title = page.querySelector(".page-item-title").textContent.toLowerCase();
+        page.hidden = !title.includes(keyword);
+    });
 });
