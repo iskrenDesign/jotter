@@ -161,6 +161,10 @@ body {
         &:hover {
             background-color: var(--color-surface-hover);
         }
+        cursor: pointer;
+        .page-item[aria-current="page"] {
+            background-color: var(--color-surface-hover);
+        }
     }
     .page-item-text {
         display: flex;

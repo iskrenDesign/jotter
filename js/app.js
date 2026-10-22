@@ -24,7 +24,8 @@ document.addEventListener("click", (event) => {
         const pageList = addPageButton.closest(".page-group").querySelector(".page-list");
         const newPage = pageTemplate.content.cloneNode(true);
         newPage.querySelector(".page-item-date").textContent = new Date().toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
-        pageList.append(newPage);
+        pageList.append(newPage); 
+        selectPage(pageList.lastElementChild);
         return;
     }
 
@@ -86,6 +87,7 @@ document.addEventListener("keydown", (event) => {
 document.addEventListener("focusout", (event) => {
     if (event.target.isContentEditable) {
         event.target.contentEditable = "false";
+           if (selectedPage && selectedPage.contains(event.target)) pageTitle.textContent = event.target.textContent;
     }
 });
 
@@ -104,6 +106,10 @@ const deletePageButton = pageMenu.querySelector('[data-action="delete-page"]');
 
 deletePageButton.addEventListener("click", () => {
     pageMenu.hidePopover();
+       if (activePage === selectedPage) {
+       selectedPage = null;
+       pageTitle.textContent = "";
+    }
     activePage.remove();
 });
 
@@ -163,4 +169,21 @@ movePageButton.addEventListener("click", () => {
         });
         moveMenu.append(item);
     });
+});
+
+// Select page
+const pageTitle = document.querySelector(".page-title");
+let selectedPage = null;
+
+function selectPage(page) {
+    if (selectedPage) selectedPage.removeAttribute("aria-current");
+    selectedPage = page;
+    page.setAttribute("aria-current", "page");
+    pageTitle.textContent = page.querySelector(".page-item-title").textContent;
+}
+
+document.addEventListener("click", (event) => {
+    const page = event.target.closest(".page-item");
+    if (!page || event.target.closest(".page-item-menu")) return;
+    selectPage(page);
 });
