@@ -4,6 +4,7 @@ import TextAlign from "https://esm.sh/@tiptap/extension-text-align@3";
 import { TaskList, TaskItem } from "https://esm.sh/@tiptap/extension-list@3";
 import { TextStyle, FontSize, Color } from "https://esm.sh/@tiptap/extension-text-style@3";
 import Image from "https://esm.sh/@tiptap/extension-image@3";
+import { PaginationPlus } from "https://esm.sh/tiptap-pagination-plus@3";
 
 // Editor
 export const editor = new Editor({
@@ -20,6 +21,23 @@ export const editor = new Editor({
         FontSize,
         Color,
         Image.configure({ allowBase64: true }),
+        PaginationPlus.configure({
+        pageWidth: 794,
+        pageHeight: 1123,
+        pageGap: 24,
+        pageGapBorderSize: 0,
+        pageBreakBackground: "#FAFAFA",
+        marginTop: 76,
+        marginBottom: 76,
+        marginLeft: 76,
+        marginRight: 76,
+        contentMarginTop: 0,
+        contentMarginBottom: 0,
+        headerLeft: "",
+        headerRight: "",
+        footerLeft: "",
+        footerRight: "{page}",
+    }),
     ],
     editable: false,
 });
@@ -194,6 +212,62 @@ async function resizeImage(file, maxWidth) {
     canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
     return canvas.toDataURL("image/webp", 0.8);
 }
+
+// Options menu
+const optionsButton = document.querySelector('[data-command="options"]');
+const optionsMenu = document.querySelector("#options-menu");
+
+const options = {
+    copy: () => {
+        editor.commands.focus();
+        document.execCommand("copy");
+    },
+    cut: () => {
+        editor.commands.focus();
+        document.execCommand("cut");
+    },
+    paste: async () => {
+        const items = await navigator.clipboard.read();
+        for (const item of items) {
+            if (item.types.includes("text/html")) {
+                const html = await (await item.getType("text/html")).text();
+                editor.chain().focus().insertContent(html).run();
+                return;
+            }
+            if (item.types.includes("text/plain")) {
+                const text = await (await item.getType("text/plain")).text();
+                if (text) editor.chain().focus().insertContent({ type: "text", text }).run();
+                return;
+            }
+        }
+    },
+    duplicate: () => {
+        const { to } = editor.state.selection;
+        const copy = editor.state.selection.content().content.toJSON();
+        editor.chain().focus().insertContentAt(to, copy).run();
+    },
+    print: () => window.print(),
+    delete: () => editor.chain().focus().deleteSelection().run(),
+};
+
+optionsButton.addEventListener("click", () => {
+    const menuWidth = parseFloat(getComputedStyle(optionsMenu).width);
+    const left = Math.min(optionsButton.getBoundingClientRect().left, window.innerWidth - menuWidth - 16);
+    optionsMenu.style.top = `${toolbar.getBoundingClientRect().bottom + 8}px`;
+    optionsMenu.style.left = `${left}px`;
+
+    const nothingSelected = editor.state.selection.empty;
+    optionsMenu.querySelectorAll('[data-option="copy"], [data-option="cut"], [data-option="duplicate"], [data-option="delete"]').forEach((item) => {
+        item.disabled = nothingSelected;
+    });
+});
+
+optionsMenu.addEventListener("click", async (event) => {
+    const item = event.target.closest("[data-option]");
+    if (!item || !editor.isEditable) return;
+    optionsMenu.hidePopover();
+    await options[item.dataset.option]();
+});
 
 // Keep the toolbar in sync with the cursor
 function updateToolbar() {

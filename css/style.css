@@ -271,14 +271,10 @@ body {
     .a4-page {
         flex-shrink: 0;
         margin-inline: auto;
-        width: 210mm;
-        min-height: 297mm;
-        padding: 20mm;
-        box-sizing: border-box;
-        background-color: var(--color-background-paper);
-        box-shadow: 0 2px 8px #0000001A;
+    }
     }
     .page-editor .tiptap {
+        background-color: var(--color-background-paper);
         min-height: calc(297mm - 40mm);
         outline: none;
     }
@@ -491,5 +487,39 @@ body {
     border-radius: var(--radius-8);
     &.ProseMirror-selectednode {
         outline: 2px solid var(--color-border-brand);
+    }
+}
+
+/* Options menu */
+.options-menu {
+    width: 16.25rem;
+}
+.menu-item:disabled {
+    color: var(--color-text-disabled);
+    background: none;
+    cursor: default;
+}
+
+/* Printing: only the page */
+@media print {
+    @page {
+        size: A4;
+        margin: 0;
+    }
+    .sidebar,
+    .main-top {
+        display: none !important;
+    }
+    .app {
+        display: block;
+        height: auto;
+    }
+    .main-content {
+        padding: 0;
+        overflow: visible;
+    }
+    .a4-page {
+        margin: 0;
+        box-shadow: none;
     }
 }
