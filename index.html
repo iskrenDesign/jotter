@@ -89,11 +89,7 @@
                     </button>
                     <div class="toolbar-divider"></div>
                     <div class="toolbar-font-size">
-                        <button class="toolbar-button toolbar-font-size-value" data-command="font-size" aria-label="Font size">16</button>
-                        <div class="toolbar-stepper">
-                            <button class="toolbar-button" data-command="font-size-up" aria-label="Increase font size"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-up preview-icon"><path d="m18 15-6-6-6 6"/></svg></button>
-                            <button class="toolbar-button" data-command="font-size-down" aria-label="Decrease font size"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down preview-icon"><path d="m6 9 6 6 6-6"/></svg></button>
-                        </div>
+                        <button class="toolbar-button toolbar-font-size-value" data-command="font-size" aria-label="Font size" popovertarget="font-size-menu">16</button>
                     </div>
                     <div class="toolbar-divider"></div>
                     <button class="toolbar-button toolbar-color" data-command="color" aria-label="Text color">
@@ -197,5 +193,7 @@
         <button class="menu-item" role="menuitemradio" data-style="h3">Subtitle</button>
         <button class="menu-item" role="menuitemradio" data-style="normal">Normal text</button>
     </div>
+    <!-- Font size menu (filled by JavaScript) -->
+    <div class="dropdown-menu toolbar-menu font-size-menu" id="font-size-menu" popover role="menu"></div>
 </body>
 </html>

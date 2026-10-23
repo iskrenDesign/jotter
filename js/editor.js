@@ -1,6 +1,10 @@
 import { Editor } from "https://esm.sh/@tiptap/core@3";
 import StarterKit from "https://esm.sh/@tiptap/starter-kit@3";
+import TextAlign from "https://esm.sh/@tiptap/extension-text-align@3";
+import { TaskList, TaskItem } from "https://esm.sh/@tiptap/extension-list@3";
+import { TextStyle, FontSize } from "https://esm.sh/@tiptap/extension-text-style@3";
 
+// Editor
 export const editor = new Editor({
     element: document.querySelector(".page-editor"),
     extensions: [
@@ -8,12 +12,30 @@ export const editor = new Editor({
         TextAlign.configure({ types: ["heading", "paragraph"] }),
         TaskList,
         TaskItem.configure({ nested: true }),
+        TextStyle,
+        FontSize,
     ],
     editable: false,
 });
 
-import TextAlign from "https://esm.sh/@tiptap/extension-text-align@3";
-import { TaskList, TaskItem } from "https://esm.sh/@tiptap/extension-list@3";
+const toolbar = document.querySelector(".toolbar");
+
+// Font size helpers
+const MIN_SIZE = 8;
+const MAX_SIZE = 96;
+
+function currentFontSize() {
+    const fontSize = editor.getAttributes("textStyle").fontSize;
+    if (fontSize) return parseInt(fontSize);
+    const { node } = editor.view.domAtPos(editor.state.selection.from);
+    const element = node.nodeType === Node.TEXT_NODE ? node.parentElement : node;
+    return Math.round(parseFloat(getComputedStyle(element).fontSize));
+}
+
+function setFontSize(size) {
+    const clamped = Math.min(MAX_SIZE, Math.max(MIN_SIZE, size));
+    editor.chain().focus().setFontSize(`${clamped}px`).run();
+}
 
 // Toolbar buttons
 const formats = {
@@ -29,7 +51,7 @@ const formats = {
     "task-list":    { run: () => editor.chain().focus().toggleTaskList().run(),        active: () => editor.isActive("taskList") },
 };
 
-document.querySelector(".toolbar").addEventListener("click", (event) => {
+toolbar.addEventListener("click", (event) => {
     const button = event.target.closest("[data-command]");
     if (!button || !editor.isEditable) return;
     const format = formats[button.dataset.command];
@@ -37,7 +59,6 @@ document.querySelector(".toolbar").addEventListener("click", (event) => {
 });
 
 // Text style menu
-const toolbar = document.querySelector(".toolbar");
 const textStyleMenu = document.querySelector("#text-style-menu");
 const textStyleButton = document.querySelector('[data-command="text-style"]');
 
@@ -61,15 +82,54 @@ textStyleMenu.addEventListener("click", (event) => {
     textStyleMenu.hidePopover();
 });
 
+// Font size menu
+const fontSizeMenu = document.querySelector("#font-size-menu");
+const fontSizeButton = document.querySelector('[data-command="font-size"]');
+
+for (let size = MIN_SIZE; size <= MAX_SIZE; size += 2) {
+    const item = document.createElement("button");
+    item.className = "menu-item";
+    item.setAttribute("role", "menuitemradio");
+    item.dataset.size = size;
+    item.textContent = size;
+    fontSizeMenu.append(item);
+}
+
+fontSizeButton.addEventListener("click", () => {
+    fontSizeMenu.style.top = `${toolbar.getBoundingClientRect().bottom + 8}px`;
+    fontSizeMenu.style.left = `${fontSizeButton.getBoundingClientRect().left}px`;
+});
+
+fontSizeMenu.addEventListener("click", (event) => {
+    const item = event.target.closest("[data-size]");
+    if (!item || !editor.isEditable) return;
+    setFontSize(Number(item.dataset.size));
+    fontSizeMenu.hidePopover();
+});
+
+fontSizeMenu.addEventListener("toggle", (event) => {
+    if (event.newState !== "open") return;
+    const current = fontSizeMenu.querySelector('[aria-checked="true"]');
+    if (current) current.scrollIntoView({ block: "center" });
+});
+
+// Keep the toolbar in sync with the cursor
 function updateToolbar() {
     document.querySelectorAll(".toolbar [data-command]").forEach((button) => {
         const format = formats[button.dataset.command];
         if (format) button.setAttribute("aria-pressed", format.active());
     });
+
     const current = Object.keys(textStyles).find((key) => textStyles[key].active());
     textStyleButton.querySelector("span").textContent = current ? textStyles[current].label : "Normal text";
     textStyleMenu.querySelectorAll("[data-style]").forEach((item) => {
         item.setAttribute("aria-checked", item.dataset.style === current);
+    });
+
+    const size = currentFontSize();
+    fontSizeButton.textContent = size;
+    fontSizeMenu.querySelectorAll("[data-size]").forEach((item) => {
+        item.setAttribute("aria-checked", Number(item.dataset.size) === size);
     });
 }
 

@@ -336,14 +336,6 @@ body {
         width: 2.5rem;
         color: var(--color-text-primary);
     }
-    .toolbar-stepper {
-        display: flex;
-        flex-direction: column;
-        padding: 0 var(--space-8);
-        .toolbar-button {
-            padding: 0;
-        }
-    }
     .toolbar-color {
         align-self: stretch;
         gap: var(--space-4);
@@ -426,5 +418,14 @@ body {
         &[aria-checked="true"] {
             background-color: var(--color-surface-hover);
         }
+    }
+}
+.font-size-menu {
+    width: 4.125rem;
+    max-height: 22.125rem;
+    overflow-y: auto;
+    .menu-item {
+        flex-shrink: 0;
+        justify-content: center;
     }
 }
