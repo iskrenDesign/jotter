@@ -8,21 +8,25 @@
     <script src="js/app.js" defer></script>
 </head>
 <body>
+    <!-- Templates -->
     <template id="page-item-template">
         <li class="page-item">
             <div class="page-item-text">
-                <span class="page-item-title">Untitled</span>
-                <time datetime="" class="page-item-date">00.00.0000</time>
+                <span class="page-item-title" spellcheck="false">Untitled</span>
+                <time class="page-item-date">00.00.0000</time>
             </div>
-            <button class="icon-button page-item-menu" aria-label="Page options" popovertarget="page-menu"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis-vertical preview-icon"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+            <button class="icon-button page-item-menu" aria-label="Page options" popovertarget="page-menu">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+            </button>
         </li>
     </template>
+
     <template id="page-group-template">
         <section class="page-group">
             <div class="page-group-header">
                 <div class="page-group-name">
                     <span class="page-group-title" spellcheck="false">New group</span>
-                     <button class="page-group-toggle" aria-expanded="true" aria-label="Collapse group">
+                    <button class="page-group-toggle" aria-expanded="true" aria-label="Collapse group">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                     </button>
                 </div>
@@ -34,44 +38,52 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
                     </button>
                 </div>
-             </div>
+            </div>
             <ul class="page-list"></ul>
         </section>
     </template>
+
     <template id="move-item-template">
         <button class="menu-item" role="menuitem">
-            <span class="menu-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-folder-open preview-icon"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg></span>
+            <span class="menu-item-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg>
+            </span>
             <span class="menu-item-label"></span>
         </button>
     </template>
+
     <div class="app">
+        <!-- Sidebar -->
         <aside class="sidebar">
             <header class="sidebar-header">
                 <img src="assets/logo.svg" alt="Jotter" class="logo">
                 <button class="icon-button sidebar-toggle" aria-label="Collapse sidebar">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-right preview-icon"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/></svg>
                 </button>
             </header>
             <div class="sidebar-pages">
                 <label class="search-field">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search preview-icon"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
                     <input type="search" class="search-input" placeholder="Search..." aria-label="Search pages">
                 </label>
-                
+                <!-- Groups are added here by JavaScript -->
             </div>
         </aside>
+
         <!-- Main content -->
-         <main class="main-content">
+        <main class="main-content">
             <header class="main-header">
-                <button class="icon-button sidebar-toggle sidebar-expand">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-right preview-icon"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/></svg>
+                <button class="icon-button sidebar-toggle sidebar-expand" aria-label="Expand sidebar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/></svg>
                 </button>
-                <span class="page-title">Page title</span>
+                <span class="page-title"></span>
                 <button class="icon-button header-page-menu" aria-label="Page options" popovertarget="page-menu" hidden>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis-vertical preview-icon"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                </button>
             </header>
-         </main>
+        </main>
     </div>
+
     <!-- Group menu -->
     <div class="dropdown-menu" id="group-menu" popover role="menu">
         <button class="menu-item" role="menuitem" data-action="rename-group">
@@ -96,6 +108,7 @@
             <kbd class="menu-item-shortcut">Ctrl + D</kbd>
         </button>
     </div>
+
     <!-- Page menu -->
     <div class="dropdown-menu" id="page-menu" popover role="menu">
         <button class="menu-item" role="menuitem" data-action="rename-page">
@@ -107,11 +120,11 @@
         </button>
         <button class="menu-item menu-item-move" role="menuitem" data-action="move-page" popovertarget="move-menu">
             <span class="menu-item-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-folder-input preview-icon"><path d="M2 9V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-1"/><path d="M2 13h10"/><path d="m9 16 3-3-3-3"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-1"/><path d="M2 13h10"/><path d="m9 16 3-3-3-3"/></svg>
             </span>
             <span class="menu-item-label">Move to a group</span>
             <span class="menu-item-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right preview-icon"><path d="m9 18 6-6-6-6"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
             </span>
         </button>
         <button class="menu-item menu-item-danger" role="menuitem" data-action="delete-page">
@@ -122,7 +135,8 @@
             <kbd class="menu-item-shortcut">Ctrl + D</kbd>
         </button>
     </div>
-    <!-- Move menu -->
+
+    <!-- Move menu (filled by JavaScript) -->
     <div class="dropdown-menu" id="move-menu" popover role="menu"></div>
 </body>
 </html>

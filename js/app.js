@@ -1,3 +1,4 @@
+// Sidebar collapse
 const app = document.querySelector(".app");
 const toggleButtons = document.querySelectorAll(".sidebar-toggle");
 
@@ -7,25 +8,47 @@ toggleButtons.forEach((button) => {
     });
 });
 
-// Page item template
+// Create pages
 const pageTemplate = document.querySelector("#page-item-template");
-const addPageButton = document.querySelectorAll(".add-page-button");
 
-// Group menu position
+function formatToday() {
+    return new Date().toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+function createPage(pageList, title = "Untitled", date = formatToday()) {
+    const newPage = pageTemplate.content.cloneNode(true);
+    const page = newPage.querySelector(".page-item");
+    page.querySelector(".page-item-title").textContent = title;
+    page.querySelector(".page-item-date").textContent = date;
+    pageList.append(newPage);
+    return page;
+}
+
+// Create groups
+const groupTemplate = document.querySelector("#page-group-template");
+const sidebarPages = document.querySelector(".sidebar-pages");
+
+function createGroup(name = "New group") {
+    const newGroup = groupTemplate.content.cloneNode(true);
+    const group = newGroup.querySelector(".page-group");
+    group.querySelector(".page-group-title").textContent = name;
+    sidebarPages.append(newGroup);
+    return group;
+}
+
+// Menus
 const groupMenu = document.querySelector("#group-menu");
-let activeGroup = null;
-
-// Page menu option
 const pageMenu = document.querySelector("#page-menu");
+let activeGroup = null;
 let activePage = null;
+
+// Group buttons: + new page, chevron, ⋮ menu
 document.addEventListener("click", (event) => {
     const addPageButton = event.target.closest(".add-page-button");
     if (addPageButton) {
         const pageList = addPageButton.closest(".page-group").querySelector(".page-list");
-        const newPage = pageTemplate.content.cloneNode(true);
-        newPage.querySelector(".page-item-date").textContent = new Date().toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
-        pageList.append(newPage); 
-        selectPage(pageList.lastElementChild);
+        const page = createPage(pageList);
+        selectPage(page);
         return;
     }
 
@@ -45,6 +68,8 @@ document.addEventListener("click", (event) => {
         activeGroup = groupMenuButton.closest(".page-group");
     }
 });
+
+// Page ⋮ menu in the sidebar
 document.addEventListener("click", (event) => {
     const button = event.target.closest(".page-item-menu");
     if (!button) return;
@@ -54,6 +79,42 @@ document.addEventListener("click", (event) => {
     pageMenu.style.right = "auto";
     activePage = button.closest(".page-item");
     pageMenu.querySelector(".menu-item-move").hidden = document.querySelectorAll(".page-group").length < 2;
+});
+
+// Page ⋮ menu in the main header
+const headerPageMenu = document.querySelector(".header-page-menu");
+
+headerPageMenu.addEventListener("click", () => {
+    const rect = headerPageMenu.getBoundingClientRect();
+    pageMenu.style.top = `${rect.bottom + 4}px`;
+    pageMenu.style.left = "auto";
+    pageMenu.style.right = `${window.innerWidth - rect.right}px`;
+    activePage = selectedPage;
+    pageMenu.querySelector(".menu-item-move").hidden = document.querySelectorAll(".page-group").length < 2;
+});
+
+// Select page
+const pageTitle = document.querySelector(".page-title");
+let selectedPage = null;
+
+function selectPage(page) {
+    if (selectedPage) selectedPage.removeAttribute("aria-current");
+    selectedPage = page;
+    page.setAttribute("aria-current", "page");
+    pageTitle.textContent = page.querySelector(".page-item-title").textContent;
+    headerPageMenu.hidden = false;
+}
+
+function clearSelection() {
+    selectedPage = null;
+    pageTitle.textContent = "";
+    headerPageMenu.hidden = true;
+}
+
+document.addEventListener("click", (event) => {
+    const page = event.target.closest(".page-item");
+    if (!page || event.target.closest(".page-item-menu")) return;
+    selectPage(page);
 });
 
 // Rename
@@ -88,42 +149,9 @@ document.addEventListener("keydown", (event) => {
 document.addEventListener("focusout", (event) => {
     if (event.target.isContentEditable) {
         event.target.contentEditable = "false";
-           if (selectedPage && selectedPage.contains(event.target)) pageTitle.textContent = event.target.textContent;
+        if (selectedPage && selectedPage.contains(event.target)) pageTitle.textContent = event.target.textContent;
     }
 });
-
-// Delete Group
-const deleteGroupButton = groupMenu.querySelector('[data-action="delete-group"]');
-deleteGroupButton.addEventListener("click", () => {
-    if (document.querySelectorAll(".page-group").length === 1) return;
-    groupMenu.hidePopover();
-    const pageCount = activeGroup.querySelectorAll(".page-item").length;
-    if (pageCount > 0 && !confirm("Are you sure you want to delete this group and its ${pageCount}?")) return;
-    if (activeGroup.contains(selectedPage)) clearSelection();
-    activeGroup.remove();
-})
-
-// Delete page
-const deletePageButton = pageMenu.querySelector('[data-action="delete-page"]');
-
-deletePageButton.addEventListener("click", () => {
-    pageMenu.hidePopover();
-    if (activePage === selectedPage) clearSelection();
-    activePage.remove();
-});
-
-// Create groups
-const groupTemplate = document.querySelector("#page-group-template");
-const sidebarPages = document.querySelector(".sidebar-pages");
-
-function createGroup() {
-    const newGroup = groupTemplate.content.cloneNode(true);
-    const group = newGroup.querySelector(".page-group");
-    sidebarPages.append(newGroup);
-    return group;
-}
-
-createGroup();
 
 // Add new group
 const addGroupButton = groupMenu.querySelector('[data-action="add-group"]');
@@ -134,15 +162,25 @@ addGroupButton.addEventListener("click", () => {
     startRename(group.querySelector(".page-group-title"));
 });
 
-// Search
-const searchInput = document.querySelector(".search-input");
+// Delete group
+const deleteGroupButton = groupMenu.querySelector('[data-action="delete-group"]');
 
-searchInput.addEventListener("input", () => {
-    const keyword = searchInput.value.trim().toLowerCase();
-    document.querySelectorAll(".page-item").forEach((page) => {
-        const title = page.querySelector(".page-item-title").textContent.toLowerCase();
-        page.hidden = !title.includes(keyword);
-    });
+deleteGroupButton.addEventListener("click", () => {
+    if (document.querySelectorAll(".page-group").length === 1) return;
+    groupMenu.hidePopover();
+    const pageCount = activeGroup.querySelectorAll(".page-item").length;
+    if (pageCount > 0 && !confirm(`Delete this group and its ${pageCount} pages?`)) return;
+    if (activeGroup.contains(selectedPage)) clearSelection();
+    activeGroup.remove();
+});
+
+// Delete page
+const deletePageButton = pageMenu.querySelector('[data-action="delete-page"]');
+
+deletePageButton.addEventListener("click", () => {
+    pageMenu.hidePopover();
+    if (activePage === selectedPage) clearSelection();
+    activePage.remove();
 });
 
 // Move page to group
@@ -175,22 +213,15 @@ movePageButton.addEventListener("click", () => {
     });
 });
 
-// Select page
-const pageTitle = document.querySelector(".page-title");
-let selectedPage = null;
+// Search
+const searchInput = document.querySelector(".search-input");
 
-function selectPage(page) {
-    if (selectedPage) selectedPage.removeAttribute("aria-current");
-    selectedPage = page;
-    page.setAttribute("aria-current", "page");
-    pageTitle.textContent = page.querySelector(".page-item-title").textContent;
-}
-
-document.addEventListener("click", (event) => {
-    const page = event.target.closest(".page-item");
-    if (!page || event.target.closest(".page-item-menu")) return;
-    selectPage(page);
-    headerPageMenu.hidden = false;
+searchInput.addEventListener("input", () => {
+    const keyword = searchInput.value.trim().toLowerCase();
+    document.querySelectorAll(".page-item").forEach((page) => {
+        const title = page.querySelector(".page-item-title").textContent.toLowerCase();
+        page.hidden = !title.includes(keyword);
+    });
 });
 
 // Keyboard shortcuts
@@ -225,20 +256,42 @@ document.addEventListener("keydown", (event) => {
     }
 });
 
-// Page menu in the main header
-const headerPageMenu = document.querySelector(".header-page-menu");
-
-headerPageMenu.addEventListener("click", () => {
-    const rect = headerPageMenu.getBoundingClientRect();
-    pageMenu.style.top = `${rect.bottom + 4}px`;
-    pageMenu.style.left = "auto";
-    pageMenu.style.right = `${window.innerWidth - rect.right}px`;
-    activePage = selectedPage;
-    pageMenu.querySelector(".menu-item-move").hidden = document.querySelectorAll(".page-group").length < 2;
-});
-
-function clearSelection() {
-    selectedPage = null;
-    pageTitle.textContent = "";
-    headerPageMenu.hidden = true;
+// Save and load
+function saveData() {
+    const data = [];
+    document.querySelectorAll(".page-group").forEach((group) => {
+        const pages = [];
+        group.querySelectorAll(".page-item").forEach((page) => {
+            pages.push({
+                title: page.querySelector(".page-item-title").textContent,
+                date: page.querySelector(".page-item-date").textContent,
+            });
+        });
+        data.push({
+            name: group.querySelector(".page-group-title").textContent,
+            collapsed: group.classList.contains("page-group-collapsed"),
+            pages: pages,
+        });
+    });
+    localStorage.setItem("jotter-data", JSON.stringify(data));
 }
+
+function loadData() {
+    const saved = localStorage.getItem("jotter-data");
+    if (saved) {
+        JSON.parse(saved).forEach((groupData) => {
+            const group = createGroup(groupData.name);
+            if (groupData.collapsed) {
+                group.classList.add("page-group-collapsed");
+                group.querySelector(".page-group-toggle").setAttribute("aria-expanded", "false");
+            }
+            groupData.pages.forEach((pageData) => {
+                createPage(group.querySelector(".page-list"), pageData.title, pageData.date);
+            });
+        });
+    }
+    if (!document.querySelector(".page-group")) createGroup();
+}
+
+loadData();
+new MutationObserver(saveData).observe(sidebarPages, { childList: true, subtree: true, characterData: true, attributes: true });
