@@ -20,6 +20,7 @@
     --color-background-paper: #FFFFFF;
     /* Surface */
     --color-surface-transparent: #FFFFFF1A;
+    --color-surface-default: #FFFFFF;
     --color-surface-brand: #4E61F6;
     --color-surface-brand-hover: #3745AF;
     --color-surface-hover: #0000001A;
@@ -231,6 +232,22 @@ body {
         visibility: hidden;
     }
 
+    /* Page header */
+    .main-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    height: 2rem;
+    padding: var(--space-8) var(--space-16);
+    background-color: var(--color-background-page-subtle);
+    }
+    .page-title {
+        flex: 1;
+        font-size: var(--font-size-lg);
+        font-weight: 400;
+        line-height: 1.5rem;
+    }
+
     /* Main content */
     .main-content {
         display: flex;
@@ -250,13 +267,9 @@ body {
         padding-bottom: var(--space-16);
         background-color: var(--color-background-page);
     }
-    .toolbar {
-        height: 2.5rem;
-        background-color: var(--color-background-page-subtle);
-    }
     .a4-page {
         flex-shrink: 0;
-        align-self: center;
+        margin-inline: auto;
         width: 210mm;
         min-height: 297mm;
         padding: 20mm;
@@ -264,24 +277,83 @@ body {
         background-color: var(--color-background-paper);
         box-shadow: 0 2px 8px #0000001A;
     }
-    .main-header {
-        display: flex;
-        align-items: center;
-        gap: var(--space-8);
-        height: 2rem;
-        padding: var(--space-8) var(--space-16);
-        background-color: var(--color-background-page-subtle);
-    }
-    .page-title {
-        flex: 1;
-        font-size: var(--font-size-lg);
-        font-weight: 400;
-        line-height: 1.5rem;
-    }
-    /* Page editor */
     .page-editor .tiptap {
         min-height: calc(297mm - 40mm);
         outline: none;
+    }
+
+    /* Toolbar */
+    .toolbar {
+        margin-inline: auto;
+        max-width: 100%;
+        overflow-x: auto;
+        display: flex;
+        align-items: center;
+        gap: var(--space-8);
+        padding: var(--space-4);
+        background-color: var(--color-surface-default);
+        border: 1px solid var(--color-border-default);
+        border-radius: var(--radius-8);
+    }
+    .toolbar-button {
+        display: flex;
+        align-items: center;
+        gap: var(--space-8);
+        padding: var(--space-12);
+        border: none;
+        border-radius: var(--radius-4);
+        background: none;
+        font: inherit;
+        font-size: var(--font-size-lg);
+        line-height: 1rem;
+        color: var(--color-icon-default);
+        cursor: pointer;
+        &:hover,
+        &[aria-pressed="true"] {
+            background-color: var(--color-surface-hover);
+        }
+    }
+    .toolbar-divider {
+        align-self: stretch;
+        width: 1px;
+        background-color: var(--color-border-default);
+    }
+    .toolbar-group {
+        display: flex;
+        gap: var(--space-4);
+    }
+    .toolbar-select {
+        min-width: 6.125rem;
+        padding: var(--space-12) var(--space-16);
+        color: var(--color-text-primary);
+    }
+    .toolbar-font-size {
+        display: flex;
+        align-items: center;
+    }
+    .toolbar-font-size-value {
+        justify-content: center;
+        width: 2.5rem;
+        color: var(--color-text-primary);
+    }
+    .toolbar-stepper {
+        display: flex;
+        flex-direction: column;
+        padding: 0 var(--space-8);
+        .toolbar-button {
+            padding: 0;
+        }
+    }
+    .toolbar-color {
+        align-self: stretch;
+        gap: var(--space-4);
+        padding: 0 var(--space-8);
+    }
+    .toolbar-color-swatch {
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: var(--radius-4);
+        background-color: var(--color-text-primary);
     }
 }
 
@@ -344,4 +416,15 @@ body {
 /* Hidden elements */
 [hidden] {
     display: none !important;
+}
+
+/* Toolbar menus */
+.toolbar-menu {
+    width: 16.25rem;
+    .menu-item {
+        padding: var(--space-16);
+        &[aria-checked="true"] {
+            background-color: var(--color-surface-hover);
+        }
+    }
 }
