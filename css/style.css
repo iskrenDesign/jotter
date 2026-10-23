@@ -278,6 +278,11 @@ body {
         font-weight: 400;
         line-height: 1.5rem;
     }
+    /* Page editor */
+    .page-editor .tiptap {
+        min-height: calc(297mm - 40mm);
+        outline: none;
+    }
 }
 
 /* Dropdown menus (outside .app, because popovers sit at the end of <body>) */
