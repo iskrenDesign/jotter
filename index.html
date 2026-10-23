@@ -118,7 +118,7 @@
                     </div>
                     <div class="toolbar-divider"></div>
                     <div class="toolbar-group">
-                        <button class="toolbar-button" data-command="link" aria-label="Add link"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link preview-icon"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+                        <button class="toolbar-button" data-command="link" aria-label="Add link" popovertarget="link-menu"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link preview-icon"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
                         <button class="toolbar-button" data-command="image" aria-label="Add image"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-plus preview-icon"><path d="M16 5h6"/><path d="M19 2v6"/><path d="M21 11.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7.5"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/><circle cx="9" cy="9" r="2"/></svg></button>
                     </div>
                     <div class="toolbar-divider"></div>
@@ -187,6 +187,7 @@
 
     <!-- Move menu (filled by JavaScript) -->
     <div class="dropdown-menu" id="move-menu" popover role="menu"></div>
+    
     <!-- Text style menu -->
     <div class="dropdown-menu toolbar-menu" id="text-style-menu" popover role="menu">
         <button class="menu-item" role="menuitemradio" data-style="h1">Header</button>
@@ -194,7 +195,17 @@
         <button class="menu-item" role="menuitemradio" data-style="h3">Subtitle</button>
         <button class="menu-item" role="menuitemradio" data-style="normal">Normal text</button>
     </div>
+    
     <!-- Font size menu (filled by JavaScript) -->
     <div class="dropdown-menu toolbar-menu font-size-menu" id="font-size-menu" popover role="menu"></div>
+    
+    <!-- Link menu -->
+    <div class="dropdown-menu" id="link-menu" popover>
+        <form class="link-form">
+            <span class="menu-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link preview-icon"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
+            <input type="text" class="link-input" placeholder="Paste a link" aria-label="Link address">
+            <button type="submit" class="link-submit" aria-label="Apply link"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-corner-down-left preview-icon"><path d="M20 4v7a4 4 0 0 1-4 4H4"/><path d="m9 10-5 5 5 5"/></svg></button>
+        </form>
+    </div>
 </body>
 </html>

@@ -8,7 +8,10 @@ import { TextStyle, FontSize, Color } from "https://esm.sh/@tiptap/extension-tex
 export const editor = new Editor({
     element: document.querySelector(".page-editor"),
     extensions: [
-        StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
+        StarterKit.configure({
+            heading: { levels: [1, 2, 3] },
+            link: { openOnClick: false, autolink: true },
+        }),
         TextAlign.configure({ types: ["heading", "paragraph"] }),
         TaskList,
         TaskItem.configure({ nested: true }),
@@ -50,6 +53,7 @@ const formats = {
     "ordered-list": { run: () => editor.chain().focus().toggleOrderedList().run(),     active: () => editor.isActive("orderedList") },
     "bullet-list":  { run: () => editor.chain().focus().toggleBulletList().run(),      active: () => editor.isActive("bulletList") },
     "task-list":    { run: () => editor.chain().focus().toggleTaskList().run(),        active: () => editor.isActive("taskList") },
+    "link": { run: () => {}, active: () => editor.isActive("link") },
 };
 
 toolbar.addEventListener("click", (event) => {
@@ -125,6 +129,42 @@ colorInput.addEventListener("input", () => {
 
 colorInput.addEventListener("change", () => {
     editor.commands.focus();
+});
+
+// Link
+const linkButton = document.querySelector('[data-command="link"]');
+const linkMenu = document.querySelector("#link-menu");
+const linkForm = document.querySelector(".link-form");
+const linkInput = document.querySelector(".link-input");
+
+linkButton.addEventListener("click", () => {
+    linkMenu.style.top = `${toolbar.getBoundingClientRect().bottom + 8}px`;
+    const menuWidth = parseFloat(getComputedStyle(linkMenu).width);
+    const left = Math.min(linkButton.getBoundingClientRect().left, window.innerWidth - menuWidth - 16);
+    linkMenu.style.left = `${left}px`;
+    linkInput.value = editor.getAttributes("link").href || "";
+});
+
+linkMenu.addEventListener("toggle", (event) => {
+    if (event.newState === "open") linkInput.focus();
+});
+
+linkForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!editor.isEditable) return;
+    let url = linkInput.value.trim();
+
+    if (url === "") {
+        editor.chain().focus().extendMarkRange("link").unsetLink().run();
+    } else {
+        if (!url.startsWith("http://") && !url.startsWith("https://")) url = `https://${url}`;
+        if (editor.state.selection.empty && !editor.isActive("link")) {
+            editor.chain().focus().insertContent({ type: "text", text: url, marks: [{ type: "link", attrs: { href: url } }] }).run();
+        } else {
+            editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+        }
+    }
+    linkMenu.hidePopover();
 });
 
 // Keep the toolbar in sync with the cursor
