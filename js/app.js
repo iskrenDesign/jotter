@@ -1,3 +1,5 @@
+import { editor } from "./editor.js";
+
 // Sidebar collapse
 const app = document.querySelector(".app");
 const toggleButtons = document.querySelectorAll(".sidebar-toggle");
@@ -15,9 +17,10 @@ function formatToday() {
     return new Date().toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-function createPage(pageList, title = "Untitled", date = formatToday()) {
+function createPage(pageList, title = "Untitled", date = formatToday(), id = crypto.randomUUID()) {
     const newPage = pageTemplate.content.cloneNode(true);
     const page = newPage.querySelector(".page-item");
+    page.dataset.id = id;
     page.querySelector(".page-item-title").textContent = title;
     page.querySelector(".page-item-date").textContent = date;
     pageList.append(newPage);
@@ -103,12 +106,16 @@ function selectPage(page) {
     page.setAttribute("aria-current", "page");
     pageTitle.textContent = page.querySelector(".page-item-title").textContent;
     headerPageMenu.hidden = false;
+    editor.commands.setContent(localStorage.getItem(`jotter-page-${page.dataset.id}`) || "", { emitUpdate: false });
+    editor.setEditable(true);
 }
 
 function clearSelection() {
     selectedPage = null;
     pageTitle.textContent = "";
     headerPageMenu.hidden = true;
+    editor.commands.clearContent();
+    editor.setEditable(false);
 }
 
 document.addEventListener("click", (event) => {
@@ -140,14 +147,14 @@ renameGroupButton.addEventListener("click", () => {
 
 // Finish editing: Enter or click elsewhere
 document.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" && event.target.isContentEditable) {
+    if (event.key === "Enter" && event.target.matches(".page-item-title, .page-group-title")) {
         event.preventDefault();
         event.target.blur();
     }
 });
 
 document.addEventListener("focusout", (event) => {
-    if (event.target.isContentEditable) {
+    if (event.target.matches(".page-item-title, .page-group-title")) {
         event.target.contentEditable = "false";
         if (selectedPage && selectedPage.contains(event.target)) pageTitle.textContent = event.target.textContent;
     }
@@ -171,6 +178,7 @@ deleteGroupButton.addEventListener("click", () => {
     const pageCount = activeGroup.querySelectorAll(".page-item").length;
     if (pageCount > 0 && !confirm(`Delete this group and its ${pageCount} pages?`)) return;
     if (activeGroup.contains(selectedPage)) clearSelection();
+    activeGroup.querySelectorAll(".page-item").forEach((page) => localStorage.removeItem(`jotter-page-${page.dataset.id}`));
     activeGroup.remove();
 });
 
@@ -180,6 +188,7 @@ const deletePageButton = pageMenu.querySelector('[data-action="delete-page"]');
 deletePageButton.addEventListener("click", () => {
     pageMenu.hidePopover();
     if (activePage === selectedPage) clearSelection();
+    localStorage.removeItem(`jotter-page-${activePage.dataset.id}`);
     activePage.remove();
 });
 
@@ -263,6 +272,7 @@ function saveData() {
         const pages = [];
         group.querySelectorAll(".page-item").forEach((page) => {
             pages.push({
+                id: page.dataset.id,
                 title: page.querySelector(".page-item-title").textContent,
                 date: page.querySelector(".page-item-date").textContent,
             });
@@ -286,7 +296,7 @@ function loadData() {
                 group.querySelector(".page-group-toggle").setAttribute("aria-expanded", "false");
             }
             groupData.pages.forEach((pageData) => {
-                createPage(group.querySelector(".page-list"), pageData.title, pageData.date);
+                createPage(group.querySelector(".page-list"), pageData.title, pageData.date, pageData.id);
             });
         });
     }
@@ -295,3 +305,9 @@ function loadData() {
 
 loadData();
 new MutationObserver(saveData).observe(sidebarPages, { childList: true, subtree: true, characterData: true, attributes: true });
+
+// Save page content
+editor.on("update", () => {
+    if (!selectedPage) return;
+    localStorage.setItem(`jotter-page-${selectedPage.dataset.id}`, editor.getHTML());
+});

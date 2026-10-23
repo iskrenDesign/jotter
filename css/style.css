@@ -17,6 +17,7 @@
     /* Background */
     --color-background-page: #FAFAFA;
     --color-background-page-subtle: #F0F0F0;
+    --color-background-paper: #FFFFFF;
     /* Surface */
     --color-surface-transparent: #FFFFFF1A;
     --color-surface-brand: #4E61F6;
@@ -69,6 +70,7 @@ body {
 .app {
     display: flex;
     height: 100vh;
+    overflow-y: auto;
 
     /* Shared icon button */
     .icon-button {
@@ -233,9 +235,34 @@ body {
     .main-content {
         display: flex;
         flex-direction: column;
-        gap: var(--space-16);
         flex: 1 0 0;
+        min-width: 0;
         padding: var(--space-16);
+        overflow-y: auto;
+    }
+    .main-top {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-16);
+        padding-bottom: var(--space-16);
+        background-color: var(--color-background-page);
+    }
+    .toolbar {
+        height: 2.5rem;
+        background-color: var(--color-background-page-subtle);
+    }
+    .a4-page {
+        flex-shrink: 0;
+        align-self: center;
+        width: 210mm;
+        min-height: 297mm;
+        padding: 20mm;
+        box-sizing: border-box;
+        background-color: var(--color-background-paper);
+        box-shadow: 0 2px 8px #0000001A;
     }
     .main-header {
         display: flex;
@@ -250,6 +277,11 @@ body {
         font-size: var(--font-size-lg);
         font-weight: 400;
         line-height: 1.5rem;
+    }
+    /* Page editor */
+    .page-editor .tiptap {
+        min-height: calc(297mm - 40mm);
+        outline: none;
     }
 }
 
