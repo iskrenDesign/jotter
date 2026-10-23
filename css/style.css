@@ -481,3 +481,15 @@ body {
     color: var(--color-text-link);
     text-decoration: underline;
 }
+
+/* Images on the page */
+.tiptap img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: var(--space-16) auto;
+    border-radius: var(--radius-8);
+    &.ProseMirror-selectednode {
+        outline: 2px solid var(--color-border-brand);
+    }
+}

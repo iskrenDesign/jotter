@@ -309,5 +309,9 @@ new MutationObserver(saveData).observe(sidebarPages, { childList: true, subtree:
 // Save page content
 editor.on("update", () => {
     if (!selectedPage) return;
-    localStorage.setItem(`jotter-page-${selectedPage.dataset.id}`, editor.getHTML());
+    try {
+        localStorage.setItem(`jotter-page-${selectedPage.dataset.id}`, editor.getHTML());
+    } catch {
+        alert("Storage is full. Remove some images to keep saving this page.");
+    }
 });

@@ -3,6 +3,7 @@ import StarterKit from "https://esm.sh/@tiptap/starter-kit@3";
 import TextAlign from "https://esm.sh/@tiptap/extension-text-align@3";
 import { TaskList, TaskItem } from "https://esm.sh/@tiptap/extension-list@3";
 import { TextStyle, FontSize, Color } from "https://esm.sh/@tiptap/extension-text-style@3";
+import Image from "https://esm.sh/@tiptap/extension-image@3";
 
 // Editor
 export const editor = new Editor({
@@ -18,6 +19,7 @@ export const editor = new Editor({
         TextStyle,
         FontSize,
         Color,
+        Image.configure({ allowBase64: true }),
     ],
     editable: false,
 });
@@ -166,6 +168,32 @@ linkForm.addEventListener("submit", (event) => {
     }
     linkMenu.hidePopover();
 });
+
+// Image
+const imageButton = document.querySelector('[data-command="image"]');
+const imageInput = document.querySelector(".image-input");
+
+imageButton.addEventListener("click", () => {
+    if (editor.isEditable) imageInput.click();
+});
+
+imageInput.addEventListener("change", async () => {
+    const file = imageInput.files[0];
+    if (!file) return;
+    const src = await resizeImage(file, 1200);
+    editor.chain().focus().setImage({ src, alt: file.name }).run();
+    imageInput.value = "";
+});
+
+async function resizeImage(file, maxWidth) {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, maxWidth / bitmap.width);
+    const canvas = document.createElement("canvas");
+    canvas.width = bitmap.width * scale;
+    canvas.height = bitmap.height * scale;
+    canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/webp", 0.8);
+}
 
 // Keep the toolbar in sync with the cursor
 function updateToolbar() {
