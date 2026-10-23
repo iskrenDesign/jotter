@@ -2,7 +2,7 @@ import { Editor } from "https://esm.sh/@tiptap/core@3";
 import StarterKit from "https://esm.sh/@tiptap/starter-kit@3";
 import TextAlign from "https://esm.sh/@tiptap/extension-text-align@3";
 import { TaskList, TaskItem } from "https://esm.sh/@tiptap/extension-list@3";
-import { TextStyle, FontSize } from "https://esm.sh/@tiptap/extension-text-style@3";
+import { TextStyle, FontSize, Color } from "https://esm.sh/@tiptap/extension-text-style@3";
 
 // Editor
 export const editor = new Editor({
@@ -14,6 +14,7 @@ export const editor = new Editor({
         TaskItem.configure({ nested: true }),
         TextStyle,
         FontSize,
+        Color,
     ],
     editable: false,
 });
@@ -113,6 +114,19 @@ fontSizeMenu.addEventListener("toggle", (event) => {
     if (current) current.scrollIntoView({ block: "center" });
 });
 
+// Text color
+const colorInput = document.querySelector(".toolbar-color-input");
+const colorSwatch = document.querySelector(".toolbar-color-swatch");
+
+colorInput.addEventListener("input", () => {
+    if (!editor.isEditable) return;
+    editor.chain().setColor(colorInput.value).run();
+});
+
+colorInput.addEventListener("change", () => {
+    editor.commands.focus();
+});
+
 // Keep the toolbar in sync with the cursor
 function updateToolbar() {
     document.querySelectorAll(".toolbar [data-command]").forEach((button) => {
@@ -131,6 +145,10 @@ function updateToolbar() {
     fontSizeMenu.querySelectorAll("[data-size]").forEach((item) => {
         item.setAttribute("aria-checked", Number(item.dataset.size) === size);
     });
+
+    const color = editor.getAttributes("textStyle").color;
+    colorSwatch.style.backgroundColor = color || "";
+    colorInput.value = color && color.startsWith("#") ? color : "#1f1f1f";
 }
 
 editor.on("transaction", updateToolbar);

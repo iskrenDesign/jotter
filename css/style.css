@@ -337,6 +337,7 @@ body {
         color: var(--color-text-primary);
     }
     .toolbar-color {
+        position: relative;
         align-self: stretch;
         gap: var(--space-4);
         padding: 0 var(--space-8);
@@ -346,6 +347,14 @@ body {
         height: 1.5rem;
         border-radius: var(--radius-4);
         background-color: var(--color-text-primary);
+    }
+    .toolbar-color-input {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
     }
 }
 
