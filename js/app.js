@@ -1,18 +1,33 @@
 import { editor } from "./editor.js";
+import { placeMenu } from "./menus.js";
+
+// Elements
+const app = document.querySelector(".app");
+const sidebarPages = document.querySelector(".sidebar-pages");
+const pageTemplate = document.querySelector("#page-item-template");
+const groupTemplate = document.querySelector("#page-group-template");
+const moveItemTemplate = document.querySelector("#move-item-template");
+const groupMenu = document.querySelector("#group-menu");
+const pageMenu = document.querySelector("#page-menu");
+const moveMenu = document.querySelector("#move-menu");
+const pageTitle = document.querySelector(".page-title");
+const headerPageMenu = document.querySelector(".header-page-menu");
+const searchInput = document.querySelector(".search-input");
+
+// State
+let activeGroup = null;  // the group whose menu is open
+let activePage = null;   // the page whose menu is open
+let selectedPage = null; // the page shown in the editor
+let hoveredItem = null;  // the page or group header under the mouse
 
 // Sidebar collapse
-const app = document.querySelector(".app");
-const toggleButtons = document.querySelectorAll(".sidebar-toggle");
-
-toggleButtons.forEach((button) => {
+document.querySelectorAll(".sidebar-toggle").forEach((button) => {
     button.addEventListener("click", () => {
         app.classList.toggle("sidebar-collapsed");
     });
 });
 
-// Create pages
-const pageTemplate = document.querySelector("#page-item-template");
-
+// Create pages and groups
 function formatToday() {
     return new Date().toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
@@ -27,10 +42,6 @@ function createPage(pageList, title = "Untitled", date = formatToday(), id = cry
     return page;
 }
 
-// Create groups
-const groupTemplate = document.querySelector("#page-group-template");
-const sidebarPages = document.querySelector(".sidebar-pages");
-
 function createGroup(name = "New group") {
     const newGroup = groupTemplate.content.cloneNode(true);
     const group = newGroup.querySelector(".page-group");
@@ -39,67 +50,11 @@ function createGroup(name = "New group") {
     return group;
 }
 
-// Menus
-const groupMenu = document.querySelector("#group-menu");
-const pageMenu = document.querySelector("#page-menu");
-let activeGroup = null;
-let activePage = null;
-
-// Group buttons: + new page, chevron, ⋮ menu
-document.addEventListener("click", (event) => {
-    const addPageButton = event.target.closest(".add-page-button");
-    if (addPageButton) {
-        const pageList = addPageButton.closest(".page-group").querySelector(".page-list");
-        const page = createPage(pageList);
-        selectPage(page);
-        return;
-    }
-
-    const toggle = event.target.closest(".page-group-toggle");
-    if (toggle) {
-        const isExpanded = toggle.getAttribute("aria-expanded") === "true";
-        toggle.setAttribute("aria-expanded", !isExpanded);
-        toggle.closest(".page-group").classList.toggle("page-group-collapsed");
-        return;
-    }
-
-    const groupMenuButton = event.target.closest(".group-menu-button");
-    if (groupMenuButton) {
-        const rect = groupMenuButton.getBoundingClientRect();
-        groupMenu.style.top = `${rect.bottom + 4}px`;
-        groupMenu.style.left = `${rect.left}px`;
-        activeGroup = groupMenuButton.closest(".page-group");
-    }
-});
-
-// Page ⋮ menu in the sidebar
-document.addEventListener("click", (event) => {
-    const button = event.target.closest(".page-item-menu");
-    if (!button) return;
-    const rect = button.getBoundingClientRect();
-    pageMenu.style.top = `${rect.bottom + 4}px`;
-    pageMenu.style.left = `${rect.left}px`;
-    pageMenu.style.right = "auto";
-    activePage = button.closest(".page-item");
-    pageMenu.querySelector(".menu-item-move").hidden = document.querySelectorAll(".page-group").length < 2;
-});
-
-// Page ⋮ menu in the main header
-const headerPageMenu = document.querySelector(".header-page-menu");
-
-headerPageMenu.addEventListener("click", () => {
-    const rect = headerPageMenu.getBoundingClientRect();
-    pageMenu.style.top = `${rect.bottom + 4}px`;
-    pageMenu.style.left = "auto";
-    pageMenu.style.right = `${window.innerWidth - rect.right}px`;
-    activePage = selectedPage;
-    pageMenu.querySelector(".menu-item-move").hidden = document.querySelectorAll(".page-group").length < 2;
-});
+function removePageContent(page) {
+    localStorage.removeItem(`jotter-page-${page.dataset.id}`);
+}
 
 // Select page
-const pageTitle = document.querySelector(".page-title");
-let selectedPage = null;
-
 function selectPage(page) {
     if (selectedPage) selectedPage.removeAttribute("aria-current");
     selectedPage = page;
@@ -118,10 +73,53 @@ function clearSelection() {
     editor.setEditable(false);
 }
 
+// Page menu
+function preparePageMenu(page) {
+    activePage = page;
+    pageMenu.querySelector(".menu-item-move").hidden = document.querySelectorAll(".page-group").length < 2;
+}
+
+headerPageMenu.addEventListener("click", () => {
+    const rect = headerPageMenu.getBoundingClientRect();
+    placeMenu(pageMenu, rect.bottom + 4, rect.right, "end");
+    preparePageMenu(selectedPage);
+});
+
+// Sidebar clicks: + new page, chevron, group ⋮, page ⋮, select page
 document.addEventListener("click", (event) => {
+    const addPageButton = event.target.closest(".add-page-button");
+    if (addPageButton) {
+        const pageList = addPageButton.closest(".page-group").querySelector(".page-list");
+        selectPage(createPage(pageList));
+        return;
+    }
+
+    const toggle = event.target.closest(".page-group-toggle");
+    if (toggle) {
+        const isExpanded = toggle.getAttribute("aria-expanded") === "true";
+        toggle.setAttribute("aria-expanded", !isExpanded);
+        toggle.closest(".page-group").classList.toggle("page-group-collapsed");
+        return;
+    }
+
+    const groupMenuButton = event.target.closest(".group-menu-button");
+    if (groupMenuButton) {
+        const rect = groupMenuButton.getBoundingClientRect();
+        placeMenu(groupMenu, rect.bottom + 4, rect.left);
+        activeGroup = groupMenuButton.closest(".page-group");
+        return;
+    }
+
+    const pageMenuButton = event.target.closest(".page-item-menu");
+    if (pageMenuButton) {
+        const rect = pageMenuButton.getBoundingClientRect();
+        placeMenu(pageMenu, rect.bottom + 4, rect.left);
+        preparePageMenu(pageMenuButton.closest(".page-item"));
+        return;
+    }
+
     const page = event.target.closest(".page-item");
-    if (!page || event.target.closest(".page-item-menu")) return;
-    selectPage(page);
+    if (page) selectPage(page);
 });
 
 // Rename
@@ -145,7 +143,7 @@ renameGroupButton.addEventListener("click", () => {
     startRename(activeGroup.querySelector(".page-group-title"));
 });
 
-// Finish editing: Enter or click elsewhere
+// Finish renaming: Enter or click elsewhere
 document.addEventListener("keydown", (event) => {
     if (event.key === "Enter" && event.target.matches(".page-item-title, .page-group-title")) {
         event.preventDefault();
@@ -175,10 +173,10 @@ const deleteGroupButton = groupMenu.querySelector('[data-action="delete-group"]'
 deleteGroupButton.addEventListener("click", () => {
     if (document.querySelectorAll(".page-group").length === 1) return;
     groupMenu.hidePopover();
-    const pageCount = activeGroup.querySelectorAll(".page-item").length;
-    if (pageCount > 0 && !confirm(`Delete this group and its ${pageCount} pages?`)) return;
+    const pages = activeGroup.querySelectorAll(".page-item");
+    if (pages.length > 0 && !confirm(`Delete this group and its ${pages.length} pages?`)) return;
     if (activeGroup.contains(selectedPage)) clearSelection();
-    activeGroup.querySelectorAll(".page-item").forEach((page) => localStorage.removeItem(`jotter-page-${page.dataset.id}`));
+    pages.forEach(removePageContent);
     activeGroup.remove();
 });
 
@@ -188,23 +186,20 @@ const deletePageButton = pageMenu.querySelector('[data-action="delete-page"]');
 deletePageButton.addEventListener("click", () => {
     pageMenu.hidePopover();
     if (activePage === selectedPage) clearSelection();
-    localStorage.removeItem(`jotter-page-${activePage.dataset.id}`);
+    removePageContent(activePage);
     activePage.remove();
 });
 
 // Move page to group
-const moveMenu = document.querySelector("#move-menu");
-const moveItemTemplate = document.querySelector("#move-item-template");
 const movePageButton = pageMenu.querySelector('[data-action="move-page"]');
 
 movePageButton.addEventListener("click", () => {
-    const rect = movePageButton.getBoundingClientRect();
-    moveMenu.style.top = `${rect.top}px`;
+    const itemRect = movePageButton.getBoundingClientRect();
     const menuRect = pageMenu.getBoundingClientRect();
     if (menuRect.right + 4 + menuRect.width <= window.innerWidth) {
-        moveMenu.style.left = `${menuRect.right + 4}px`;
+        placeMenu(moveMenu, itemRect.top, menuRect.right + 4);
     } else {
-        moveMenu.style.left = `${menuRect.left - menuRect.width - 4}px`;
+        placeMenu(moveMenu, itemRect.top, menuRect.left - 4, "end");
     }
 
     moveMenu.replaceChildren();
@@ -223,8 +218,6 @@ movePageButton.addEventListener("click", () => {
 });
 
 // Search
-const searchInput = document.querySelector(".search-input");
-
 searchInput.addEventListener("input", () => {
     const keyword = searchInput.value.trim().toLowerCase();
     document.querySelectorAll(".page-item").forEach((page) => {
@@ -234,8 +227,6 @@ searchInput.addEventListener("input", () => {
 });
 
 // Keyboard shortcuts
-let hoveredItem = null;
-
 document.addEventListener("mouseover", (event) => {
     hoveredItem = event.target.closest(".page-item, .page-group-header");
 });
@@ -265,7 +256,7 @@ document.addEventListener("keydown", (event) => {
     }
 });
 
-// Save and load
+// Save and load the sidebar
 function saveData() {
     const data = [];
     document.querySelectorAll(".page-group").forEach((group) => {

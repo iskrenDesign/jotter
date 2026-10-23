@@ -72,7 +72,6 @@ body {
 .app {
     display: flex;
     height: 100vh;
-    overflow-y: auto;
 
     /* Shared icon button */
     .icon-button {
@@ -233,22 +232,6 @@ body {
         visibility: hidden;
     }
 
-    /* Page header */
-    .main-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-8);
-    height: 2rem;
-    padding: var(--space-8) var(--space-16);
-    background-color: var(--color-background-page-subtle);
-    }
-    .page-title {
-        flex: 1;
-        font-size: var(--font-size-lg);
-        font-weight: 400;
-        line-height: 1.5rem;
-    }
-
     /* Main content */
     .main-content {
         display: flex;
@@ -268,26 +251,41 @@ body {
         padding-bottom: var(--space-16);
         background-color: var(--color-background-page);
     }
+    .main-header {
+        display: flex;
+        align-items: center;
+        gap: var(--space-8);
+        height: 2rem;
+        padding: var(--space-8) var(--space-16);
+        background-color: var(--color-background-page-subtle);
+        border-radius: var(--radius-8);
+    }
+    .page-title {
+        flex: 1;
+        font-size: var(--font-size-lg);
+        font-weight: 400;
+        line-height: 1.5rem;
+    }
+
+    /* Page */
     .a4-page {
         flex-shrink: 0;
         margin-inline: auto;
     }
-    }
     .page-editor .tiptap {
         background-color: var(--color-background-paper);
-        min-height: calc(297mm - 40mm);
         outline: none;
     }
 
     /* Toolbar */
     .toolbar {
-        margin-inline: auto;
-        max-width: 100%;
-        overflow-x: auto;
         display: flex;
         align-items: center;
         gap: var(--space-8);
+        max-width: 100%;
+        margin-inline: auto;
         padding: var(--space-4);
+        overflow-x: auto;
         background-color: var(--color-surface-default);
         border: 1px solid var(--color-border-default);
         border-radius: var(--radius-8);
@@ -324,10 +322,6 @@ body {
         padding: var(--space-12) var(--space-16);
         color: var(--color-text-primary);
     }
-    .toolbar-font-size {
-        display: flex;
-        align-items: center;
-    }
     .toolbar-font-size-value {
         justify-content: center;
         width: 2.5rem;
@@ -352,6 +346,22 @@ body {
         height: 100%;
         opacity: 0;
         cursor: pointer;
+    }
+}
+
+/* Page content */
+.tiptap a {
+    color: var(--color-text-link);
+    text-decoration: underline;
+}
+.tiptap img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: var(--space-16) auto;
+    border-radius: var(--radius-8);
+    &.ProseMirror-selectednode {
+        outline: 2px solid var(--color-border-brand);
     }
 }
 
@@ -387,6 +397,11 @@ body {
     &:hover {
         background-color: var(--color-surface-hover);
     }
+    &:disabled {
+        color: var(--color-text-disabled);
+        background: none;
+        cursor: default;
+    }
 }
 .menu-item-icon {
     display: flex;
@@ -402,18 +417,6 @@ body {
 .menu-item-danger {
     color: var(--color-text-error);
     border-top: 1px solid var(--color-border-default);
-}
-
-/* Editing a title */
-[contenteditable="true"] {
-    outline: 1px solid var(--color-border-brand);
-    outline-offset: 2px;
-    border-radius: var(--radius-4);
-}
-
-/* Hidden elements */
-[hidden] {
-    display: none !important;
 }
 
 /* Toolbar menus */
@@ -434,6 +437,9 @@ body {
         flex-shrink: 0;
         justify-content: center;
     }
+}
+.options-menu {
+    width: 16.25rem;
 }
 
 /* Link menu */
@@ -472,38 +478,27 @@ body {
     }
 }
 
-/* Links on the page */
-.tiptap a {
-    color: var(--color-text-link);
-    text-decoration: underline;
+/* Editing a title */
+[contenteditable="true"] {
+    outline: 1px solid var(--color-border-brand);
+    outline-offset: 2px;
+    border-radius: var(--radius-4);
 }
 
-/* Images on the page */
-.tiptap img {
-    display: block;
-    max-width: 100%;
-    height: auto;
-    margin: var(--space-16) auto;
-    border-radius: var(--radius-8);
-    &.ProseMirror-selectednode {
-        outline: 2px solid var(--color-border-brand);
-    }
-}
-
-/* Options menu */
-.options-menu {
-    width: 16.25rem;
-}
-.menu-item:disabled {
-    color: var(--color-text-disabled);
-    background: none;
-    cursor: default;
+/* Hidden elements */
+[hidden] {
+    display: none !important;
 }
 
 /* Printing: only the page */
 @media print {
     @page {
         size: A4;
+        margin: 0;
+    }
+    html,
+    body {
+        height: auto;
         margin: 0;
     }
     .sidebar,
@@ -520,6 +515,5 @@ body {
     }
     .a4-page {
         margin: 0;
-        box-shadow: none;
     }
 }

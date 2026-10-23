@@ -5,6 +5,7 @@ import { TaskList, TaskItem } from "https://esm.sh/@tiptap/extension-list@3";
 import { TextStyle, FontSize, Color } from "https://esm.sh/@tiptap/extension-text-style@3";
 import Image from "https://esm.sh/@tiptap/extension-image@3";
 import { PaginationPlus } from "https://esm.sh/tiptap-pagination-plus@3";
+import { placeMenu } from "./menus.js";
 
 // Editor
 export const editor = new Editor({
@@ -22,27 +23,32 @@ export const editor = new Editor({
         Color,
         Image.configure({ allowBase64: true }),
         PaginationPlus.configure({
-        pageWidth: 794,
-        pageHeight: 1123,
-        pageGap: 24,
-        pageGapBorderSize: 0,
-        pageBreakBackground: "#FAFAFA",
-        marginTop: 76,
-        marginBottom: 76,
-        marginLeft: 76,
-        marginRight: 76,
-        contentMarginTop: 0,
-        contentMarginBottom: 0,
-        headerLeft: "",
-        headerRight: "",
-        footerLeft: "",
-        footerRight: "{page}",
-    }),
+            pageWidth: 794,
+            pageHeight: 1123,
+            pageGap: 24,
+            pageGapBorderSize: 0,
+            pageBreakBackground: "#FAFAFA",
+            marginTop: 76,
+            marginBottom: 76,
+            marginLeft: 76,
+            marginRight: 76,
+            contentMarginTop: 0,
+            contentMarginBottom: 0,
+            headerLeft: "",
+            headerRight: "",
+            footerLeft: "",
+            footerRight: "{page}",
+        }),
     ],
     editable: false,
 });
 
+// Toolbar
 const toolbar = document.querySelector(".toolbar");
+
+function placeBelowToolbar(menu, x) {
+    placeMenu(menu, toolbar.getBoundingClientRect().bottom + 8, x);
+}
 
 // Font size helpers
 const MIN_SIZE = 8;
@@ -73,7 +79,7 @@ const formats = {
     "ordered-list": { run: () => editor.chain().focus().toggleOrderedList().run(),     active: () => editor.isActive("orderedList") },
     "bullet-list":  { run: () => editor.chain().focus().toggleBulletList().run(),      active: () => editor.isActive("bulletList") },
     "task-list":    { run: () => editor.chain().focus().toggleTaskList().run(),        active: () => editor.isActive("taskList") },
-    "link": { run: () => {}, active: () => editor.isActive("link") },
+    "link":         { run: () => {},                                                   active: () => editor.isActive("link") },
 };
 
 toolbar.addEventListener("click", (event) => {
@@ -95,9 +101,7 @@ const textStyles = {
 };
 
 textStyleButton.addEventListener("click", () => {
-    const rect = toolbar.getBoundingClientRect();
-    textStyleMenu.style.top = `${rect.bottom + 8}px`;
-    textStyleMenu.style.left = `${rect.left}px`;
+    placeBelowToolbar(textStyleMenu, toolbar.getBoundingClientRect().left);
 });
 
 textStyleMenu.addEventListener("click", (event) => {
@@ -121,8 +125,7 @@ for (let size = MIN_SIZE; size <= MAX_SIZE; size += 2) {
 }
 
 fontSizeButton.addEventListener("click", () => {
-    fontSizeMenu.style.top = `${toolbar.getBoundingClientRect().bottom + 8}px`;
-    fontSizeMenu.style.left = `${fontSizeButton.getBoundingClientRect().left}px`;
+    placeBelowToolbar(fontSizeMenu, fontSizeButton.getBoundingClientRect().left);
 });
 
 fontSizeMenu.addEventListener("click", (event) => {
@@ -158,10 +161,7 @@ const linkForm = document.querySelector(".link-form");
 const linkInput = document.querySelector(".link-input");
 
 linkButton.addEventListener("click", () => {
-    linkMenu.style.top = `${toolbar.getBoundingClientRect().bottom + 8}px`;
-    const menuWidth = parseFloat(getComputedStyle(linkMenu).width);
-    const left = Math.min(linkButton.getBoundingClientRect().left, window.innerWidth - menuWidth - 16);
-    linkMenu.style.left = `${left}px`;
+    placeBelowToolbar(linkMenu, linkButton.getBoundingClientRect().left);
     linkInput.value = editor.getAttributes("link").href || "";
 });
 
@@ -227,18 +227,22 @@ const options = {
         document.execCommand("cut");
     },
     paste: async () => {
-        const items = await navigator.clipboard.read();
-        for (const item of items) {
-            if (item.types.includes("text/html")) {
-                const html = await (await item.getType("text/html")).text();
-                editor.chain().focus().insertContent(html).run();
-                return;
+        try {
+            const items = await navigator.clipboard.read();
+            for (const item of items) {
+                if (item.types.includes("text/html")) {
+                    const html = await (await item.getType("text/html")).text();
+                    editor.chain().focus().insertContent(html).run();
+                    return;
+                }
+                if (item.types.includes("text/plain")) {
+                    const text = await (await item.getType("text/plain")).text();
+                    if (text) editor.chain().focus().insertContent({ type: "text", text }).run();
+                    return;
+                }
             }
-            if (item.types.includes("text/plain")) {
-                const text = await (await item.getType("text/plain")).text();
-                if (text) editor.chain().focus().insertContent({ type: "text", text }).run();
-                return;
-            }
+        } catch {
+            alert("Jotter couldn't read the clipboard. Use Ctrl+V instead.");
         }
     },
     duplicate: () => {
@@ -251,11 +255,7 @@ const options = {
 };
 
 optionsButton.addEventListener("click", () => {
-    const menuWidth = parseFloat(getComputedStyle(optionsMenu).width);
-    const left = Math.min(optionsButton.getBoundingClientRect().left, window.innerWidth - menuWidth - 16);
-    optionsMenu.style.top = `${toolbar.getBoundingClientRect().bottom + 8}px`;
-    optionsMenu.style.left = `${left}px`;
-
+    placeBelowToolbar(optionsMenu, optionsButton.getBoundingClientRect().left);
     const nothingSelected = editor.state.selection.empty;
     optionsMenu.querySelectorAll('[data-option="copy"], [data-option="cut"], [data-option="duplicate"], [data-option="delete"]').forEach((item) => {
         item.disabled = nothingSelected;
@@ -294,3 +294,12 @@ function updateToolbar() {
 }
 
 editor.on("transaction", updateToolbar);
+
+// Printing: remove the gaps between pages so they match the paper
+window.addEventListener("beforeprint", () => {
+    editor.commands.updatePageGap(0);
+});
+
+window.addEventListener("afterprint", () => {
+    editor.commands.updatePageGap(24);
+});
