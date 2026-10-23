@@ -15,9 +15,10 @@ function formatToday() {
     return new Date().toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-function createPage(pageList, title = "Untitled", date = formatToday()) {
+function createPage(pageList, title = "Untitled", date = formatToday(), id = crypto.randomUUID()) {
     const newPage = pageTemplate.content.cloneNode(true);
     const page = newPage.querySelector(".page-item");
+    page.dataset.id = id;
     page.querySelector(".page-item-title").textContent = title;
     page.querySelector(".page-item-date").textContent = date;
     pageList.append(newPage);
@@ -263,6 +264,7 @@ function saveData() {
         const pages = [];
         group.querySelectorAll(".page-item").forEach((page) => {
             pages.push({
+                id: page.dataset.id,
                 title: page.querySelector(".page-item-title").textContent,
                 date: page.querySelector(".page-item-date").textContent,
             });
@@ -286,7 +288,7 @@ function loadData() {
                 group.querySelector(".page-group-toggle").setAttribute("aria-expanded", "false");
             }
             groupData.pages.forEach((pageData) => {
-                createPage(group.querySelector(".page-list"), pageData.title, pageData.date);
+                createPage(group.querySelector(".page-list"), pageData.title, pageData.date, pageData.id);
             });
         });
     }
