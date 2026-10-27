@@ -7,6 +7,7 @@
 }
 
 :root {
+    color-scheme: light;
     /* Font styles */
     --font-body: "Sofia Sans", sans-serif;
     --font-heading: "Sofia Sans", sans-serif;
@@ -62,6 +63,24 @@
     --radius-40: clamp(2.5rem, 2.5rem + 0vw, 2.5rem);
 }
 
+/* Dark theme: set by data-theme on <html> */
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --color-background-page: #1F1F1F;
+    --color-background-page-subtle: #292929;
+    --color-background-paper: #242528;
+    --color-surface-default: #242528;
+    --color-surface-transparent: #2425281A;
+    --color-surface-hover: #FFFFFF1A;
+    --color-text-primary: #FAFAFA;
+    --color-text-secondary: #F0F0F0;
+    --color-text-disabled: #7A7A7A;
+    --color-text-error: #EE443F;
+    --color-icon-default: #F0F0F0;
+    --color-icon-error: #EE443F;
+    --color-border-default: #525252;
+}
+
 /* Body */
 body {
     margin: 0 auto;
@@ -110,6 +129,33 @@ body {
         display: flex;
         flex-direction: column;
         gap: var(--space-16);
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+    }
+
+    /* Theme switch */
+    .theme-switch {
+        display: flex;
+        justify-content: flex-end;
+        padding: var(--space-8) 0;
+        border-top: 1px solid var(--color-border-default);
+    }
+    .theme-button {
+        display: flex;
+        padding: var(--space-8);
+        border: none;
+        border-radius: var(--radius-4);
+        background: none;
+        color: var(--color-icon-default);
+        cursor: pointer;
+        &:hover {
+            background-color: var(--color-surface-hover);
+        }
+        &[aria-pressed="true"] {
+            background-color: var(--color-surface-brand);
+            color: var(--color-icon-on-surface);
+        }
     }
 
     /* Sidebar collapse and expand */
@@ -275,7 +321,7 @@ body {
         margin-inline: auto;
     }
     .page-editor .tiptap {
-        background-color: var(--color-background-paper);
+        background-color: none!important;
         outline: none;
     }
 
@@ -564,7 +610,7 @@ body {
 @media print {
     @page {
         size: A4;
-        margin: 20mm;
+        margin: 1.5rem;
         @bottom-right {
             content: counter(page);
             font-family: "Sofia Sans", sans-serif;
@@ -584,26 +630,27 @@ body {
         display: block;
         height: auto;
     }
-    .main-content {
-        padding: 0;
-        overflow: visible;
-    }
-    .a4-page {
-        margin: 0;
-    }
+    .main-content,
+    .a4-page,
+    .page-editor,
     .tiptap.rm-with-pagination {
         width: auto !important;
+        max-width: none !important;
         min-height: 0 !important;
+        margin: 0 !important;
         padding: 0 !important;
         border: none !important;
+        overflow: visible !important;
     }
     .rm-pages-wrapper,
     .rm-page-header,
     .rm-page-footer {
         display: none !important;
     }
+    .tiptap {
+        print-color-adjust: exact;
+    }
 }
-
 
 /* TipTap */
 .tiptap {
@@ -693,4 +740,14 @@ body {
 li[data-checked="true"] > div {
     color: var(--color-text-disabled);
     text-decoration: line-through;
+}
+
+/* Pagination colors follow the theme */
+.tiptap.rm-with-pagination {
+    --rm-page-gap-border-color: var(--color-border-default) !important;
+}
+.rm-pagination-gap {
+    background-color: var(--color-background-page) !important;
+    border-left-color: var(--color-background-page) !important;
+    border-right-color: var(--color-background-page) !important;
 }

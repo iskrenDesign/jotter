@@ -28,6 +28,41 @@ document.querySelectorAll(".sidebar-toggle").forEach((button) => {
     });
 });
 
+// Theme
+const themeButtons = document.querySelectorAll(".theme-button");
+const systemDark = matchMedia("(prefers-color-scheme: dark)");
+let currentTheme = document.documentElement.dataset.theme;
+
+function applyTheme(theme) {
+    currentTheme = theme;
+    document.documentElement.dataset.theme = theme;
+    themeButtons.forEach((button) => {
+        button.setAttribute("aria-pressed", button.dataset.themeChoice === theme);
+    });
+}
+
+themeButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+        localStorage.setItem("jotter-theme", button.dataset.themeChoice);
+        applyTheme(button.dataset.themeChoice);
+    });
+});
+
+systemDark.addEventListener("change", () => {
+    if (!localStorage.getItem("jotter-theme")) applyTheme(systemDark.matches ? "dark" : "light");
+});
+
+applyTheme(document.documentElement.dataset.theme);
+
+// Always print in the light theme
+window.addEventListener("beforeprint", () => {
+    document.documentElement.dataset.theme = "light";
+});
+
+window.addEventListener("afterprint", () => {
+    document.documentElement.dataset.theme = currentTheme;
+});
+
 // Create pages and groups
 function formatToday() {
     return new Date().toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
