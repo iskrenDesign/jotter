@@ -23,6 +23,7 @@
     "esbuild": "^0.28.2"
   },
   "dependencies": {
+    "@tauri-apps/plugin-fs": "^2.7.1",
     "@tiptap/core": "^3.32.0",
     "@tiptap/extension-image": "^3.32.0",
     "@tiptap/extension-list": "^3.32.0",

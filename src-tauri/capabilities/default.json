@@ -5,7 +5,16 @@
   "windows": [
     "main"
   ],
-  "permissions": [
-    "core:default"
+    "permissions": [
+    "core:default",
+    "fs:default",
+    "fs:write-all",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        { "path": "$DOCUMENT/Jotter" },
+        { "path": "$DOCUMENT/Jotter/**" }
+      ]
+    }
   ]
 }

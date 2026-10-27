@@ -1,6 +1,7 @@
 import { editor } from "./editor.js";
 import { placeMenu } from "./menus.js";
 import { confirmDialog } from "./dialog.js";
+import { loadIndex, saveIndex, loadPage, savePage, deletePage } from "./storage.js";
 
 // Elements
 const app = document.querySelector(".app");
@@ -96,17 +97,19 @@ function createGroup(name = "New group") {
 }
 
 function removePageContent(page) {
-    localStorage.removeItem(`jotter-page-${page.dataset.id}`);
+    deletePage(page.dataset.id);
 }
 
 // Select page
-function selectPage(page) {
+async function selectPage(page) {
     if (selectedPage) selectedPage.removeAttribute("aria-current");
     selectedPage = page;
     page.setAttribute("aria-current", "page");
     pageTitle.textContent = page.querySelector(".page-item-title").textContent;
     headerPageMenu.hidden = false;
-    editor.commands.setContent(localStorage.getItem(`jotter-page-${page.dataset.id}`) || "", { emitUpdate: false });
+    const content = await loadPage(page.dataset.id);
+    if (selectedPage !== page) return;
+    editor.commands.setContent(content, { emitUpdate: false });
     editor.setEditable(true);
     localStorage.setItem("jotter-last-page", page.dataset.id);
 }
@@ -351,13 +354,13 @@ function saveData() {
             pages: pages,
         });
     });
-    localStorage.setItem("jotter-data", JSON.stringify(data));
+    saveIndex(data);
 }
 
-function loadData() {
-    const saved = localStorage.getItem("jotter-data");
+async function loadData() {
+    const saved = await loadIndex();
     if (saved) {
-        JSON.parse(saved).forEach((groupData) => {
+        saved.forEach((groupData) => {
             const group = createGroup(groupData.name);
             if (groupData.collapsed) {
                 group.classList.add("page-group-collapsed");
@@ -371,7 +374,7 @@ function loadData() {
     if (!document.querySelector(".page-group")) createGroup();
 }
 
-loadData();
+await loadData();
 updateEmptyState();
 
 // Reopen the last page, or the first one
@@ -381,12 +384,13 @@ if (startPage) selectPage(startPage);
 
 new MutationObserver(saveData).observe(sidebarPages, { childList: true, subtree: true, characterData: true, attributes: true });
 
-// Save page content
+// Save page content, half a second after typing stops
+const saveTimers = {};
+
 editor.on("update", () => {
     if (!selectedPage) return;
-    try {
-        localStorage.setItem(`jotter-page-${selectedPage.dataset.id}`, editor.getHTML());
-    } catch {
-        alert("Storage is full. Remove some images to keep saving this page.");
-    }
+    const id = selectedPage.dataset.id;
+    const html = editor.getHTML();
+    clearTimeout(saveTimers[id]);
+    saveTimers[id] = setTimeout(() => savePage(id, html), 500);
 });
