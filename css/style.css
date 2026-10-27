@@ -28,6 +28,7 @@
     --color-surface-disabled: #0000001A;
     --color-background-overlay: #242528CC;
     --color-surface-danger: #EE443F;
+    --color-surface-inverted: #242528;
     /* Text */
     --color-text-primary: #1F1F1F;
     --color-text-secondary: #292929;
@@ -37,6 +38,7 @@
     --color-text-on-surface: #FFFFFF;
     --color-text-error: #832523;
     --color-text-link: #006AB5;
+    --color-text-inverted: #FFFFFF;
     /* Icons */
     --color-icon-default: #292929;
     --color-icon-disabled: #A3A3A3;
@@ -79,6 +81,8 @@
     --color-icon-default: #F0F0F0;
     --color-icon-error: #EE443F;
     --color-border-default: #525252;
+    --color-surface-inverted: #FAFAFA;
+    --color-text-inverted: #1F1F1F;
 }
 
 /* Body */
@@ -604,6 +608,50 @@ body {
 /* Hidden elements */
 [hidden] {
     display: none !important;
+}
+
+/* First-start tooltip on the + button */
+.app.no-pages .page-group:first-of-type .add-page-button {
+    position: relative;
+    &::after {
+        content: "Create your first page";
+        position: absolute;
+        top: calc(100% + 8px);
+        right: -4px;
+        padding: var(--space-4) var(--space-8);
+        border-radius: var(--radius-4);
+        background-color: var(--color-surface-inverted);
+        color: var(--color-text-inverted);
+        font-family: var(--font-body);
+        font-size: var(--font-size-lg);
+        line-height: 1.5rem;
+        white-space: nowrap;
+        pointer-events: none;
+        animation: tooltip-float 1.6s ease-in-out infinite;
+    }
+    &::before {
+        content: "";
+        position: absolute;
+        top: calc(100% + 4px);
+        right: 4px;
+        width: 8px;
+        height: 4px;
+        background-color: var(--color-surface-inverted);
+        clip-path: polygon(50% 0, 100% 100%, 0 100%);
+        animation: tooltip-float 1.6s ease-in-out infinite;
+    }
+}
+
+@keyframes tooltip-float {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 4px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app.no-pages .add-page-button::after,
+    .app.no-pages .add-page-button::before {
+        animation: none;
+    }
 }
 
 /* Printing: only the page, laid out by the browser */

@@ -329,7 +329,12 @@ document.addEventListener("keydown", (event) => {
 });
 
 // Save and load the sidebar
+function updateEmptyState() {
+    app.classList.toggle("no-pages", !document.querySelector(".page-item"));
+}
+
 function saveData() {
+    updateEmptyState();
     const data = [];
     document.querySelectorAll(".page-group").forEach((group) => {
         const pages = [];
@@ -367,6 +372,7 @@ function loadData() {
 }
 
 loadData();
+updateEmptyState();
 
 // Reopen the last page, or the first one
 const lastPageId = localStorage.getItem("jotter-last-page");
