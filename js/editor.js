@@ -6,6 +6,7 @@ import { TextStyle, FontSize, Color } from "https://esm.sh/@tiptap/extension-tex
 import Image from "https://esm.sh/@tiptap/extension-image@3";
 import { PaginationPlus } from "https://esm.sh/tiptap-pagination-plus@3";
 import { placeMenu } from "./menus.js";
+import { VideoCard, videoProvider, getVideoInfo } from "./video-card.js";
 
 // Editor
 export const editor = new Editor({
@@ -22,6 +23,7 @@ export const editor = new Editor({
         FontSize,
         Color,
         Image.configure({ allowBase64: true }),
+        VideoCard,
         PaginationPlus.configure({
             pageWidth: 794,
             pageHeight: 1123,
@@ -41,6 +43,20 @@ export const editor = new Editor({
         }),
     ],
     editable: false,
+    editorProps: {
+        handlePaste: (view, event) => {
+            const text = event.clipboardData.getData("text/plain").trim();
+            const provider = videoProvider(text);
+            if (!provider) return false;
+            insertVideoCard(text, provider);
+            return true;
+        },
+        handleClickOn: (view, pos, node) => {
+            if (node.type.name !== "videoCard") return false;
+            window.open(node.attrs.url, "_blank");
+            return true;
+        },
+    },
 });
 
 // Toolbar
@@ -303,3 +319,9 @@ window.addEventListener("beforeprint", () => {
 window.addEventListener("afterprint", () => {
     editor.commands.updatePageGap(24);
 });
+
+// Video cards
+async function insertVideoCard(url, provider) {
+    const info = await getVideoInfo(url, provider);
+    editor.chain().focus().insertContent({ type: "videoCard", attrs: { url, ...info } }).run();
+}
