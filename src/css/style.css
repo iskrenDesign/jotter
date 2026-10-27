@@ -129,6 +129,11 @@ body {
         align-self: stretch;
         padding: var(--space-12) 0 var(--space-12) var(--space-12);
     }
+        .logo {
+        display: block;
+        height: 2rem;
+        width: auto;
+    }
     .sidebar-pages {
         display: flex;
         flex-direction: column;
