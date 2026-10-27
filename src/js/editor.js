@@ -2,6 +2,9 @@ import { Editor, StarterKit, TextAlign, TaskList, TaskItem, TextStyle, FontSize,
 import { placeMenu } from "./menus.js";
 import { VideoCard, videoProvider, getVideoInfo } from "./video-card.js";
 
+// In the app, open links in the user's browser; in the browser, a new tab
+const openLink = window.__TAURI__?.opener?.openUrl ?? ((url) => window.open(url, "_blank"));
+
 // Editor
 export const editor = new Editor({
     element: document.querySelector(".page-editor"),
@@ -47,7 +50,7 @@ export const editor = new Editor({
         },
         handleClickOn: (view, pos, node) => {
             if (node.type.name !== "videoCard") return false;
-            window.open(node.attrs.url, "_blank");
+                openLink(node.attrs.url);
             return true;
         },
     },
@@ -324,13 +327,35 @@ function setZoom(value) {
     localStorage.setItem("jotter-zoom", zoom);
 }
 
+// direction: 1 = zoom in, -1 = zoom out
+function zoomBy(direction) {
+    const index = ZOOM_STEPS.indexOf(zoom) + direction;
+    setZoom(ZOOM_STEPS[Math.min(Math.max(index, 0), ZOOM_STEPS.length - 1)]);
+}
+
 document.querySelector(".page-zoom").addEventListener("click", (event) => {
     const button = event.target.closest("[data-zoom]");
     if (!button) return;
     const index = ZOOM_STEPS.indexOf(zoom);
-    if (button.dataset.zoom === "in") setZoom(ZOOM_STEPS[Math.min(index + 1, ZOOM_STEPS.length - 1)]);
-    if (button.dataset.zoom === "out") setZoom(ZOOM_STEPS[Math.max(index - 1, 0)]);
+    if (button.dataset.zoom === "in") zoomBy(1);
+    if (button.dataset.zoom === "out") zoomBy(-1);
     if (button.dataset.zoom === "reset") setZoom(100);
 });
 
 setZoom(zoom);
+
+// Ctrl + plus/minus/0 and Ctrl + mouse wheel zoom the page, not the whole app
+document.addEventListener("keydown", (event) => {
+    if (!event.ctrlKey) return;
+    if (event.key === "=" || event.key === "+") zoomBy(1);
+    else if (event.key === "-") zoomBy(-1);
+    else if (event.key === "0") setZoom(100);
+    else return;
+    event.preventDefault();
+});
+
+document.addEventListener("wheel", (event) => {
+    if (!event.ctrlKey) return;
+    event.preventDefault();
+    zoomBy(event.deltaY < 0 ? 1 : -1);
+}, { passive: false });

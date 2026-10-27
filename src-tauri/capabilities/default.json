@@ -5,16 +5,32 @@
   "windows": [
     "main"
   ],
-    "permissions": [
+  "permissions": [
     "core:default",
     "fs:default",
     "fs:write-all",
     {
       "identifier": "fs:scope",
       "allow": [
-        { "path": "$DOCUMENT/Jotter" },
-        { "path": "$DOCUMENT/Jotter/**" }
+        {
+          "path": "$DOCUMENT/Jotter"
+        },
+        {
+          "path": "$DOCUMENT/Jotter/**"
+        }
       ]
-    }
+    },
+    {
+      "identifier": "http:default",
+      "allow": [
+        {
+          "url": "https://www.youtube.com/*"
+        },
+        {
+          "url": "https://vimeo.com/*"
+        }
+      ]
+    },
+    "opener:default"
   ]
 }

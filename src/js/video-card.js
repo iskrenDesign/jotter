@@ -1,5 +1,8 @@
 import { Node } from "./vendor/tiptap.js";
 
+// In the app, use Tauri's fetch (not blocked by CORS); in the browser, the normal one
+const fetchUrl = window.__TAURI__?.http?.fetch ?? fetch;
+
 // Which platform is this link from? (null = not a video link)
 export function videoProvider(text) {
     try {
@@ -20,7 +23,8 @@ const oembedUrls = {
 
 export async function getVideoInfo(url, provider) {
     try {
-        const response = await fetch(oembedUrls[provider](url));
+        const response = await fetchUrl(oembedUrls[provider](url));
+        if (!response.ok) throw new Error("No video info");
         const data = await response.json();
         return { thumbnail: data.thumbnail_url, title: data.title };
     } catch {

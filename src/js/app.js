@@ -134,14 +134,19 @@ headerPageMenu.addEventListener("click", () => {
     preparePageMenu(selectedPage);
 });
 
+// New page at the top of a group
+function addPage(group) {
+    const pageList = group.querySelector(".page-list");
+    const page = createPage(pageList);
+    pageList.prepend(page);
+    selectPage(page);
+}
+
 // Sidebar clicks: + new page, chevron, group ⋮, page ⋮, select page
 document.addEventListener("click", (event) => {
     const addPageButton = event.target.closest(".add-page-button");
         if (addPageButton) {
-        const pageList = addPageButton.closest(".page-group").querySelector(".page-list");
-        const page = createPage(pageList);
-        pageList.prepend(page);
-        selectPage(page);
+            addPage(addPageButton.closest(".page-group"));
         return;
     }
 
@@ -307,14 +312,21 @@ document.addEventListener("mouseover", (event) => {
 });
 
 document.addEventListener("keydown", (event) => {
-    if (!event.ctrlKey || event.target.isContentEditable || event.target.matches("input")) return;
+    if (!event.ctrlKey) return;
     const key = event.key.toLowerCase();
 
-    if (key === "n" && event.shiftKey) {
+    // Ctrl+R would reload the app window, so always block it
+    if (key === "r") event.preventDefault();
+
+    // Ctrl+N: new page, Ctrl+Shift+N: new group (these work while typing too)
+    if (key === "n") {
         event.preventDefault();
-        addGroupButton.click();
+        if (event.shiftKey) addGroupButton.click();
+        else addPage(selectedPage?.closest(".page-group") || document.querySelector(".page-group"));
         return;
     }
+
+    if (event.target.isContentEditable || event.target.matches("input")) return;
 
     const target = hoveredItem || selectedPage;
     if (!target || (key !== "r" && key !== "d")) return;
