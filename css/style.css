@@ -518,7 +518,36 @@ body {
     }
 }
 
+
 /* TipTap */
+.tiptap {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    h1,
+    h2,
+    h3 {
+        font-family: var(--font-heading);
+        font-weight: 600;
+        margin: var(--space-24) 0 var(--space-8);
+    }
+    h1 {
+        font-size: 1.75rem;
+        line-height: 2.5rem;
+        letter-spacing: -0.0175rem;
+    }
+    h2 {
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+    }
+    h3 {
+        font-size: 1.125rem;
+        line-height: 1.5rem;
+    }
+    p {
+        margin: 0 0 var(--space-8);
+    }
+}
+
 .tiptap ul[data-type="taskList"] {
     padding-left: 0;
     list-style: none;
@@ -553,6 +582,25 @@ body {
             background-color: var(--color-surface-brand);
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
         }
+    }
+}
+
+.tiptap .video-card {
+    max-width: 30rem;
+    margin: var(--space-16);
+    text-align: left;
+    cursor: pointer;
+    img {
+        display: block;
+        width: 100%;
+        margin: 0;
+        border-radius: var(--radius-8);
+    }
+    figcaption {
+        margin-top: var(--space-8);
+        font-size: var(--font-size-lg);
+        font-weight: 700;
+        color: var(--color-text-secondary);
     }
 }
 
