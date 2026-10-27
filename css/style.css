@@ -517,3 +517,46 @@ body {
         margin: 0;
     }
 }
+
+/* TipTap */
+.tiptap ul[data-type="taskList"] {
+    padding-left: 0;
+    list-style: none;
+    li {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-8);
+    }
+    li > label {
+        display: flex;
+        flex-shrink: 0;
+        margin-top: 0.2em;
+    }
+    li > div {
+        flex: 1;
+        p {
+            margin: 0;
+        }
+    }
+    input[type="checkbox"] {
+        appearance: none;
+        width: 1rem;
+        height: 1rem;
+        margin: 0;
+        border: 1.5px solid var(--color-icon-default);
+        border-radius: var(--radius-4);
+        background-position: center;
+        background-size: 100%;
+        cursor: pointer;
+        &:checked {
+            border-color: var(--color-surface-brand);
+            background-color: var(--color-surface-brand);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+        }
+    }
+}
+
+li[data-checked="true"] > div {
+    color: var(--color-text-disabled);
+    text-decoration: line-through;
+}
