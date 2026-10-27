@@ -390,12 +390,3 @@ editor.on("update", () => {
         alert("Storage is full. Remove some images to keep saving this page.");
     }
 });
-// Save page content
-editor.on("update", () => {
-    if (!selectedPage) return;
-    try {
-        localStorage.setItem(`jotter-page-${selectedPage.dataset.id}`, editor.getHTML());
-    } catch {
-        alert("Storage is full. Remove some images to keep saving this page.");
-    }
-});
