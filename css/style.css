@@ -751,3 +751,15 @@ li[data-checked="true"] > div {
     border-left-color: var(--color-background-page) !important;
     border-right-color: var(--color-background-page) !important;
 }
+
+/* Narrow windows: the sidebar opens over the content */
+@media (max-width: 82rem) {
+    .app .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 2;
+        box-shadow: 0 18px 88px -4px #13192724, 0 8px 28px -6px #1319271F;
+    }
+}
