@@ -129,7 +129,8 @@ body {
         align-self: stretch;
         padding: var(--space-12) 0 var(--space-12) var(--space-12);
     }
-        .logo {
+    .logo {
+        color: var(--color-text-primary);
         display: block;
         height: 2rem;
         width: auto;
