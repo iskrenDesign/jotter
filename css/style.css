@@ -490,11 +490,16 @@ body {
     display: none !important;
 }
 
-/* Printing: only the page */
+/* Printing: only the page, laid out by the browser */
 @media print {
     @page {
         size: A4;
-        margin: 0;
+        margin: 20mm;
+        @bottom-right {
+            content: counter(page);
+            font-family: "Sofia Sans", sans-serif;
+            font-size: 12px;
+        }
     }
     html,
     body {
@@ -515,6 +520,17 @@ body {
     }
     .a4-page {
         margin: 0;
+    }
+    .tiptap.rm-with-pagination {
+        width: auto !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+    }
+    .rm-pages-wrapper,
+    .rm-page-header,
+    .rm-page-footer {
+        display: none !important;
     }
 }
 

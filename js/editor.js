@@ -311,15 +311,6 @@ function updateToolbar() {
 
 editor.on("transaction", updateToolbar);
 
-// Printing: remove the gaps between pages so they match the paper
-window.addEventListener("beforeprint", () => {
-    editor.commands.updatePageGap(0);
-});
-
-window.addEventListener("afterprint", () => {
-    editor.commands.updatePageGap(24);
-});
-
 // Video cards
 async function insertVideoCard(url, provider) {
     const info = await getVideoInfo(url, provider);
