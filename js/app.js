@@ -1,5 +1,6 @@
 import { editor } from "./editor.js";
 import { placeMenu } from "./menus.js";
+import { confirmDialog } from "./dialog.js";
 
 // Elements
 const app = document.querySelector(".app");
@@ -170,24 +171,45 @@ addGroupButton.addEventListener("click", () => {
 // Delete group
 const deleteGroupButton = groupMenu.querySelector('[data-action="delete-group"]');
 
-deleteGroupButton.addEventListener("click", () => {
+deleteGroupButton.addEventListener("click", async () => {
     if (document.querySelectorAll(".page-group").length === 1) return;
     groupMenu.hidePopover();
-    const pages = activeGroup.querySelectorAll(".page-item");
-    if (pages.length > 0 && !confirm(`Delete this group and its ${pages.length} pages?`)) return;
-    if (activeGroup.contains(selectedPage)) clearSelection();
+    const group = activeGroup;
+    const pages = group.querySelectorAll(".page-item");
+
+    if (pages.length > 0) {
+        const confirmed = await confirmDialog({
+            title: "Delete this group?",
+            message: "This will permanently delete the group and all its contents. This action cannot be undone.",
+            cancelLabel: "Keep group",
+            confirmLabel: "Delete group",
+        });
+        if (!confirmed) return;
+    }
+
+    if (group.contains(selectedPage)) clearSelection();
     pages.forEach(removePageContent);
-    activeGroup.remove();
+    group.remove();
 });
 
 // Delete page
 const deletePageButton = pageMenu.querySelector('[data-action="delete-page"]');
 
-deletePageButton.addEventListener("click", () => {
+deletePageButton.addEventListener("click", async () => {
     pageMenu.hidePopover();
-    if (activePage === selectedPage) clearSelection();
-    removePageContent(activePage);
-    activePage.remove();
+    const page = activePage;
+
+    const confirmed = await confirmDialog({
+        title: "Delete this page?",
+        message: "This will permanently delete the page and its content. This action cannot be undone.",
+        cancelLabel: "Keep page",
+        confirmLabel: "Delete page",
+    });
+    if (!confirmed) return;
+
+    if (page === selectedPage) clearSelection();
+    removePageContent(page);
+    page.remove();
 });
 
 // Move page to group

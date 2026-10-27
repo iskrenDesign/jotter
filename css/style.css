@@ -25,6 +25,8 @@
     --color-surface-brand-hover: #3745AF;
     --color-surface-hover: #0000001A;
     --color-surface-disabled: #0000001A;
+    --color-background-overlay: #242528CC;
+    --color-surface-danger: #EE443F;
     /* Text */
     --color-text-primary: #1F1F1F;
     --color-text-secondary: #292929;
@@ -475,6 +477,74 @@ body {
     cursor: pointer;
     &:hover {
         background-color: var(--color-surface-hover);
+    }
+}
+
+/* Confirm dialog */
+.confirm-dialog {
+    width: 30rem;
+    max-width: calc(100% - 2rem);
+    padding: 0;
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-8);
+    background-color: var(--color-surface-default);
+    color: var(--color-text-primary);
+    box-shadow: 0 18px 88px -4px #13192724, 0 8px 28px -6px #1319271F;
+    &::backdrop {
+        background-color: var(--color-background-overlay);
+    }
+}
+.confirm-dialog-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-16);
+    padding: var(--space-16);
+    text-align: center;
+}
+.confirm-dialog-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+}
+.confirm-dialog-title {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 2rem;
+    letter-spacing: -0.015rem;
+}
+.confirm-dialog-message {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    line-height: 1.5rem;
+    color: var(--color-text-secondary);
+}
+.confirm-dialog-actions {
+    display: flex;
+    gap: var(--space-16);
+}
+.dialog-button {
+    padding: var(--space-12) var(--space-16);
+    border: none;
+    border-radius: var(--radius-4);
+    background: none;
+    font: inherit;
+    font-size: var(--font-size-lg);
+    line-height: 1rem;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    &:hover {
+        background-color: var(--color-surface-hover);
+    }
+}
+.dialog-button-danger {
+    background-color: var(--color-surface-danger);
+    color: var(--color-text-on-surface);
+    &:hover {
+        background-color: var(--color-surface-danger);
+        filter: brightness(0.9);
     }
 }
 
