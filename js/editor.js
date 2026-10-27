@@ -316,3 +316,27 @@ async function insertVideoCard(url, provider) {
     const info = await getVideoInfo(url, provider);
     editor.chain().focus().insertContent({ type: "videoCard", attrs: { url, ...info } }).run();
 }
+
+// Page zoom
+const ZOOM_STEPS = [50, 67, 75, 90, 100, 110, 125, 150, 175, 200];
+const pageElement = document.querySelector(".a4-page");
+const zoomValue = document.querySelector(".page-zoom-value");
+let zoom = Number(localStorage.getItem("jotter-zoom")) || 100;
+
+function setZoom(value) {
+    zoom = value;
+    pageElement.style.zoom = zoom / 100;
+    zoomValue.textContent = `${zoom}%`;
+    localStorage.setItem("jotter-zoom", zoom);
+}
+
+document.querySelector(".page-zoom").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-zoom]");
+    if (!button) return;
+    const index = ZOOM_STEPS.indexOf(zoom);
+    if (button.dataset.zoom === "in") setZoom(ZOOM_STEPS[Math.min(index + 1, ZOOM_STEPS.length - 1)]);
+    if (button.dataset.zoom === "out") setZoom(ZOOM_STEPS[Math.max(index - 1, 0)]);
+    if (button.dataset.zoom === "reset") setZoom(100);
+});
+
+setZoom(zoom);
