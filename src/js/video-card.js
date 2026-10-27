@@ -1,4 +1,4 @@
-import { Node } from "https://esm.sh/@tiptap/core@3";
+import { Node } from "./vendor/tiptap.js";
 
 // Which platform is this link from? (null = not a video link)
 export function videoProvider(text) {
