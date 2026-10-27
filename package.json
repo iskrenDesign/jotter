@@ -4,7 +4,7 @@
   "description": "A lightweight, local note-taking app",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:tiptap": "esbuild tiptap-entry.js --bundle --format=esm --minify --outfile=src/js/vendor/tiptap.js"
   },
   "repository": {
     "type": "git",
@@ -19,6 +19,16 @@
   },
   "homepage": "https://github.com/iskrenDesign/jotter#readme",
   "devDependencies": {
-    "@tauri-apps/cli": "^2.12.4"
+    "@tauri-apps/cli": "^2.12.4",
+    "esbuild": "^0.28.2"
+  },
+  "dependencies": {
+    "@tiptap/core": "^3.32.0",
+    "@tiptap/extension-image": "^3.32.0",
+    "@tiptap/extension-list": "^3.32.0",
+    "@tiptap/extension-text-align": "^3.32.0",
+    "@tiptap/extension-text-style": "^3.32.0",
+    "@tiptap/starter-kit": "^3.32.0",
+    "tiptap-pagination-plus": "^3.1.0"
   }
 }

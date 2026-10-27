@@ -1,10 +1,4 @@
-import { Editor } from "https://esm.sh/@tiptap/core@3";
-import StarterKit from "https://esm.sh/@tiptap/starter-kit@3";
-import TextAlign from "https://esm.sh/@tiptap/extension-text-align@3";
-import { TaskList, TaskItem } from "https://esm.sh/@tiptap/extension-list@3";
-import { TextStyle, FontSize, Color } from "https://esm.sh/@tiptap/extension-text-style@3";
-import Image from "https://esm.sh/@tiptap/extension-image@3";
-import { PaginationPlus } from "https://esm.sh/tiptap-pagination-plus@3";
+import { Editor, StarterKit, TextAlign, TaskList, TaskItem, TextStyle, FontSize, Color, Image, PaginationPlus } from "./vendor/tiptap.js";
 import { placeMenu } from "./menus.js";
 import { VideoCard, videoProvider, getVideoInfo } from "./video-card.js";
 
