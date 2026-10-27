@@ -22,10 +22,54 @@ let selectedPage = null; // the page shown in the editor
 let hoveredItem = null;  // the page or group header under the mouse
 
 // Sidebar collapse
+const narrowScreen = matchMedia("(max-width: 82rem)");
+
 document.querySelectorAll(".sidebar-toggle").forEach((button) => {
     button.addEventListener("click", () => {
         app.classList.toggle("sidebar-collapsed");
     });
+});
+
+function fitSidebar() {
+    app.classList.toggle("sidebar-collapsed", narrowScreen.matches);
+}
+
+narrowScreen.addEventListener("change", fitSidebar);
+fitSidebar();
+
+// Theme
+const themeButtons = document.querySelectorAll(".theme-button");
+const systemDark = matchMedia("(prefers-color-scheme: dark)");
+let currentTheme = document.documentElement.dataset.theme;
+
+function applyTheme(theme) {
+    currentTheme = theme;
+    document.documentElement.dataset.theme = theme;
+    themeButtons.forEach((button) => {
+        button.setAttribute("aria-pressed", button.dataset.themeChoice === theme);
+    });
+}
+
+themeButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+        localStorage.setItem("jotter-theme", button.dataset.themeChoice);
+        applyTheme(button.dataset.themeChoice);
+    });
+});
+
+systemDark.addEventListener("change", () => {
+    if (!localStorage.getItem("jotter-theme")) applyTheme(systemDark.matches ? "dark" : "light");
+});
+
+applyTheme(document.documentElement.dataset.theme);
+
+// Always print in the light theme
+window.addEventListener("beforeprint", () => {
+    document.documentElement.dataset.theme = "light";
+});
+
+window.addEventListener("afterprint", () => {
+    document.documentElement.dataset.theme = currentTheme;
 });
 
 // Create pages and groups
@@ -64,6 +108,7 @@ function selectPage(page) {
     headerPageMenu.hidden = false;
     editor.commands.setContent(localStorage.getItem(`jotter-page-${page.dataset.id}`) || "", { emitUpdate: false });
     editor.setEditable(true);
+    localStorage.setItem("jotter-last-page", page.dataset.id);
 }
 
 function clearSelection() {
@@ -89,9 +134,11 @@ headerPageMenu.addEventListener("click", () => {
 // Sidebar clicks: + new page, chevron, group ⋮, page ⋮, select page
 document.addEventListener("click", (event) => {
     const addPageButton = event.target.closest(".add-page-button");
-    if (addPageButton) {
+        if (addPageButton) {
         const pageList = addPageButton.closest(".page-group").querySelector(".page-list");
-        selectPage(createPage(pageList));
+        const page = createPage(pageList);
+        pageList.prepend(page);
+        selectPage(page);
         return;
     }
 
@@ -120,7 +167,10 @@ document.addEventListener("click", (event) => {
     }
 
     const page = event.target.closest(".page-item");
-    if (page) selectPage(page);
+    if (page) {
+        selectPage(page);
+        if (narrowScreen.matches) app.classList.add("sidebar-collapsed");
+    }
 });
 
 // Rename
@@ -317,8 +367,23 @@ function loadData() {
 }
 
 loadData();
+
+// Reopen the last page, or the first one
+const lastPageId = localStorage.getItem("jotter-last-page");
+const startPage = document.querySelector(`.page-item[data-id="${lastPageId}"]`) || document.querySelector(".page-item");
+if (startPage) selectPage(startPage);
+
 new MutationObserver(saveData).observe(sidebarPages, { childList: true, subtree: true, characterData: true, attributes: true });
 
+// Save page content
+editor.on("update", () => {
+    if (!selectedPage) return;
+    try {
+        localStorage.setItem(`jotter-page-${selectedPage.dataset.id}`, editor.getHTML());
+    } catch {
+        alert("Storage is full. Remove some images to keep saving this page.");
+    }
+});
 // Save page content
 editor.on("update", () => {
     if (!selectedPage) return;
