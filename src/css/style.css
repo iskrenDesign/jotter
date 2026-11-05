@@ -285,6 +285,16 @@ body {
             visibility: visible;
         }
     }
+    /* Pinned section */
+    .pinned-header {
+        display: flex;
+        align-items: center;
+        gap: var(--space-4);
+        padding: var(--space-8) var(--space-8) var(--space-12) var(--space-16);
+        font-size: var(--font-size-md);
+        line-height: 1rem;
+        color: var(--color-text-secondary);
+    }
     .page-item-text {
         display: flex;
         flex-direction: column;
