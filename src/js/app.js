@@ -9,6 +9,7 @@ const sidebarPages = document.querySelector(".sidebar-pages");
 const pageTemplate = document.querySelector("#page-item-template");
 const groupTemplate = document.querySelector("#page-group-template");
 const moveItemTemplate = document.querySelector("#move-item-template");
+const pinnedTemplate = document.querySelector("#pinned-item-template");
 const groupMenu = document.querySelector("#group-menu");
 const pageMenu = document.querySelector("#page-menu");
 const moveMenu = document.querySelector("#move-menu");
@@ -102,9 +103,9 @@ function removePageContent(page) {
 
 // Select page
 async function selectPage(page) {
-    if (selectedPage) selectedPage.removeAttribute("aria-current");
+    document.querySelectorAll(".page-item[aria-current]").forEach((item) => item.removeAttribute("aria-current"));
     selectedPage = page;
-    page.setAttribute("aria-current", "page");
+    document.querySelectorAll(`.page-item[data-id="${page.dataset.id}"]`).forEach((item) => item.setAttribute("aria-current", "page"));
     pageTitle.textContent = page.querySelector(".page-item-title").textContent;
     headerPageMenu.hidden = false;
     const content = await loadPage(page.dataset.id);
@@ -122,9 +123,40 @@ function clearSelection() {
     editor.setEditable(false);
 }
 
+// Pinned pages: a copy of the page is shown in the Pinned section at the top
+function originalOf(item) {
+    if (!item || !item.closest(".pinned-list")) return item;
+    return document.querySelector(`.page-group .page-item[data-id="${item.dataset.id}"]`);
+}
+
+function renderPinned() {
+    const pinnedList = document.querySelector(".pinned-list");
+    const pinned = [...document.querySelectorAll(".page-group .page-item[data-pinned-at]")]
+        .sort((a, b) => a.dataset.pinnedAt - b.dataset.pinnedAt);
+    pinnedList.replaceChildren();
+    pinned.forEach((page) => {
+        const copy = pinnedTemplate.content.cloneNode(true);
+        const item = copy.querySelector(".page-item");
+        item.dataset.id = page.dataset.id;
+        item.querySelector(".page-item-title").textContent = page.querySelector(".page-item-title").textContent;
+        item.querySelector(".page-item-date").textContent = page.querySelector(".page-item-date").textContent;
+        if (page === selectedPage) item.setAttribute("aria-current", "page");
+        pinnedList.append(copy);
+    });
+}
+
+function togglePin(page) {
+    if (!page) return;
+    if (page.dataset.pinnedAt) delete page.dataset.pinnedAt;
+    else page.dataset.pinnedAt = Date.now();
+    renderPinned();
+}
+
 // Page menu
 function preparePageMenu(page) {
     activePage = page;
+    pageMenu.querySelector('[data-action="pin-page"] .menu-item-label').textContent =
+        page.dataset.pinnedAt ? "Unpin page" : "Pin page";
     pageMenu.querySelector(".menu-item-move").hidden = document.querySelectorAll(".page-group").length < 2;
 }
 
@@ -170,13 +202,19 @@ document.addEventListener("click", (event) => {
     if (pageMenuButton) {
         const rect = pageMenuButton.getBoundingClientRect();
         placeMenu(pageMenu, rect.bottom + 4, rect.left);
-        preparePageMenu(pageMenuButton.closest(".page-item"));
+        preparePageMenu(originalOf(pageMenuButton.closest(".page-item")));
+        return;
+    }
+
+    const unpinButton = event.target.closest(".unpin-button");
+    if (unpinButton) {
+        togglePin(originalOf(unpinButton.closest(".page-item")));
         return;
     }
 
     const page = event.target.closest(".page-item");
     if (page) {
-        selectPage(page);
+        selectPage(originalOf(page));
         if (narrowScreen.matches) app.classList.add("sidebar-collapsed");
     }
 });
@@ -188,10 +226,19 @@ function startRename(title) {
     document.getSelection().selectAllChildren(title);
 }
 
+const pinPageButton = pageMenu.querySelector('[data-action="pin-page"]');
+
+pinPageButton.addEventListener("click", () => {
+    pageMenu.hidePopover();
+    togglePin(activePage);
+});
+
 const renamePageButton = pageMenu.querySelector('[data-action="rename-page"]');
 
 renamePageButton.addEventListener("click", () => {
     pageMenu.hidePopover();
+    const pageGroup = activePage.closest(".page-group");
+    if (pageGroup.classList.contains("page-group-collapsed")) pageGroup.querySelector(".page-group-toggle").click();
     startRename(activePage.querySelector(".page-item-title"));
 });
 
@@ -215,6 +262,7 @@ document.addEventListener("focusout", (event) => {
         event.target.contentEditable = "false";
         event.target.scrollLeft = 0;
         if (selectedPage && selectedPage.contains(event.target)) pageTitle.textContent = event.target.textContent;
+        renderPinned();
     }
 });
 
@@ -249,6 +297,7 @@ deleteGroupButton.addEventListener("click", async () => {
     if (group.contains(selectedPage)) clearSelection();
     pages.forEach(removePageContent);
     group.remove();
+    renderPinned();
 });
 
 // Delete page
@@ -269,6 +318,7 @@ deletePageButton.addEventListener("click", async () => {
     if (page === selectedPage) clearSelection();
     removePageContent(page);
     page.remove();
+    renderPinned();
 });
 
 // Move page to group
@@ -327,6 +377,14 @@ document.addEventListener("keydown", (event) => {
         return;
     }
 
+    // Ctrl+Shift+P: pin or unpin (works while typing too)
+    if (key === "p" && event.shiftKey) {
+        event.preventDefault();
+        const hovered = hoveredItem?.matches(".page-item") ? hoveredItem : null;
+        togglePin(originalOf(event.target.isContentEditable ? selectedPage : hovered || selectedPage));
+        return;
+    }
+
     if (event.target.isContentEditable || event.target.matches("input")) return;
 
     const target = hoveredItem || selectedPage;
@@ -334,7 +392,7 @@ document.addEventListener("keydown", (event) => {
     event.preventDefault();
 
     if (target.matches(".page-item")) {
-        activePage = target;
+        activePage = originalOf(target);
         if (key === "r") renamePageButton.click();
         if (key === "d") deletePageButton.click();
     } else {
@@ -359,6 +417,7 @@ function saveData() {
                 id: page.dataset.id,
                 title: page.querySelector(".page-item-title").textContent,
                 date: page.querySelector(".page-item-date").textContent,
+                pinnedAt: Number(page.dataset.pinnedAt) || 0,
             });
         });
         data.push({
@@ -380,7 +439,8 @@ async function loadData() {
                 group.querySelector(".page-group-toggle").setAttribute("aria-expanded", "false");
             }
             groupData.pages.forEach((pageData) => {
-                createPage(group.querySelector(".page-list"), pageData.title, pageData.date, pageData.id);
+                const page = createPage(group.querySelector(".page-list"), pageData.title, pageData.date, pageData.id);
+                if (pageData.pinnedAt) page.dataset.pinnedAt = pageData.pinnedAt;
             });
         });
     }
@@ -388,11 +448,12 @@ async function loadData() {
 }
 
 await loadData();
+renderPinned();
 updateEmptyState();
 
 // Reopen the last page, or the first one
 const lastPageId = localStorage.getItem("jotter-last-page");
-const startPage = document.querySelector(`.page-item[data-id="${lastPageId}"]`) || document.querySelector(".page-item");
+const startPage = document.querySelector(`.page-group .page-item[data-id="${lastPageId}"]`) || document.querySelector(".page-group .page-item");
 if (startPage) selectPage(startPage);
 
 new MutationObserver(saveData).observe(sidebarPages, { childList: true, subtree: true, characterData: true, attributes: true });
