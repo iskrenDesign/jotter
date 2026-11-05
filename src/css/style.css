@@ -880,7 +880,8 @@ li[data-checked="true"] > div {
 
 
 /* Drag and drop: groups */
-.app .page-group-header:not(:has([contenteditable="true"])) {
+.app .page-group-header:not(:has([contenteditable="true"])),
+.app .page-item:not(:has([contenteditable="true"])) {
     user-select: none;
     -webkit-touch-callout: none;
 }
@@ -910,6 +911,15 @@ li[data-checked="true"] > div {
     border-radius: 1px;
     background-color: var(--color-surface-brand);
     pointer-events: none;
+}
+
+.drop-box {
+    position: fixed;
+    z-index: 999;
+    pointer-events: none;
+    border: 1px solid var(--color-border-brand);
+    border-radius: var(--radius-8);
+    background-color: color-mix(in srgb, var(--color-surface-brand) 8%, transparent);
 }
 
 body.is-dragging-group {

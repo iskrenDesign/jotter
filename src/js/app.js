@@ -471,27 +471,45 @@ editor.on("update", () => {
 
 
 // Drag and drop: reorder groups (mouse, pen and touch use the same code)
+// Drag and drop: reorder groups, move pages to another group (mouse, pen and touch use the same code)
 const dropLine = document.createElement("div");
 dropLine.className = "drop-line";
 dropLine.hidden = true;
 document.body.append(dropLine);
 
-let pending = null; // pointer is down on a group header, drag has not started yet
-let drag = null;    // a group is being dragged
+const dropBox = document.createElement("div");
+dropBox.className = "drop-box";
+dropBox.hidden = true;
+document.body.append(dropBox);
+
+let pending = null; // pointer is down on a group header or a page, drag has not started yet
+let drag = null;    // something is being dragged
+
+function allGroups() {
+    return [...sidebarPages.querySelectorAll(":scope > .page-group")];
+}
 
 function otherGroups(group) {
-    return [...sidebarPages.querySelectorAll(":scope > .page-group")].filter((item) => item !== group);
+    return allGroups().filter((item) => item !== group);
 }
 
 sidebarPages.addEventListener("pointerdown", (event) => {
     if (event.button !== 0) return;
+    if (event.target.closest("button, [contenteditable='true']")) return;
+
+    const page = event.target.closest(".page-item");
     const header = event.target.closest(".page-group-header");
-    if (!header || event.target.closest("button, [contenteditable='true']")) return;
-    const group = header.closest(".page-group");
-    if (otherGroups(group).length === 0) return;
+    let item = null;
+    if (page) {
+        if (!page.closest(".pinned-list")) item = page; // pinned copies cannot be dragged
+    } else if (header) {
+        item = header.closest(".page-group");
+    }
+    if (!item || allGroups().length < 2) return;
 
     pending = {
-        group,
+        item,
+        kind: item.matches(".page-item") ? "page" : "group",
         id: event.pointerId,
         startX: event.clientX,
         startY: event.clientY,
@@ -501,31 +519,31 @@ sidebarPages.addEventListener("pointerdown", (event) => {
         timer: null,
     };
     // Touch: hold for 300 ms to start dragging, so normal scrolling still works
-    if (pending.touch) pending.timer = setTimeout(() => pending && beginGroupDrag(), 300);
+    if (pending.touch) pending.timer = setTimeout(() => pending && beginDrag(), 300);
 });
 
-function beginGroupDrag() {
-    const { group, id, x, y, timer } = pending;
+function beginDrag() {
+    const { item, kind, id, x, y, timer } = pending;
     clearTimeout(timer);
     pending = null;
 
-    const rect = group.getBoundingClientRect();
-    const ghost = group.cloneNode(true);
+    const rect = item.getBoundingClientRect();
+    const ghost = item.cloneNode(true);
     ghost.classList.add("drag-ghost");
     ghost.setAttribute("aria-hidden", "true");
     ghost.style.width = rect.width + "px";
     app.append(ghost);
 
-    group.classList.add("is-dragging");
+    item.classList.add("is-dragging");
     document.body.classList.add("is-dragging-group");
     document.getSelection().removeAllRanges();
     try { sidebarPages.setPointerCapture(id); } catch {}
 
-    drag = { group, ghost, offsetX: x - rect.left, offsetY: y - rect.top, before: null };
+    drag = { item, kind, ghost, offsetX: x - rect.left, offsetY: y - rect.top, before: null, target: null };
 }
 
-function moveGroupDrag(x, y) {
-    const { group, ghost, offsetX, offsetY } = drag;
+function moveDrag(x, y) {
+    const { item, kind, ghost, offsetX, offsetY } = drag;
     ghost.style.left = x - offsetX + "px";
     ghost.style.top = y - offsetY + "px";
 
@@ -534,37 +552,62 @@ function moveGroupDrag(x, y) {
     if (y < area.top + 40) sidebarPages.scrollTop -= 12;
     if (y > area.bottom - 40) sidebarPages.scrollTop += 12;
 
-    // Above the middle of a group's header = drop before it, otherwise after it
-    const others = otherGroups(group);
-    drag.before = others.find((item) => {
-        const header = item.querySelector(".page-group-header").getBoundingClientRect();
-        return y < header.top + header.height / 2;
-    }) || null;
+    if (kind === "group") {
+        // Above the middle of a group's header = drop before it, otherwise after it
+        const others = otherGroups(item);
+        drag.before = others.find((group) => {
+            const header = group.querySelector(".page-group-header").getBoundingClientRect();
+            return y < header.top + header.height / 2;
+        }) || null;
 
-    const lineY = drag.before
-        ? drag.before.getBoundingClientRect().top - 8
-        : others.at(-1).getBoundingClientRect().bottom + 8;
-    dropLine.style.top = lineY - 1 + "px";
-    dropLine.style.left = area.left + 8 + "px";
-    dropLine.style.width = area.width - 16 + "px";
-    dropLine.hidden = false;
+        const lineY = drag.before
+            ? drag.before.getBoundingClientRect().top - 8
+            : others.at(-1).getBoundingClientRect().bottom + 8;
+        dropLine.style.top = lineY - 1 + "px";
+        dropLine.style.left = area.left + 8 + "px";
+        dropLine.style.width = area.width - 16 + "px";
+        dropLine.hidden = false;
+    } else {
+        // The group under the pointer (the 8px margin covers the gap between groups)
+        const current = item.closest(".page-group");
+        drag.target = allGroups().find((group) => {
+            const rect = group.getBoundingClientRect();
+            return y > rect.top - 8 && y < rect.bottom + 8;
+        }) || null;
+        if (drag.target === current) drag.target = null;
+
+        if (drag.target) {
+            const rect = drag.target.getBoundingClientRect();
+            dropBox.style.top = rect.top - 4 + "px";
+            dropBox.style.left = rect.left - 4 + "px";
+            dropBox.style.width = rect.width + 8 + "px";
+            dropBox.style.height = rect.height + 8 + "px";
+        }
+        dropBox.hidden = !drag.target;
+    }
 }
 
-function endGroupDrag(drop) {
+function endDrag(drop) {
     if (pending) {
         clearTimeout(pending.timer);
         pending = null;
     }
     if (!drag) return;
 
-    const { group, ghost, before } = drag;
-    if (drop) {
-        if (before) before.before(group);
-        else otherGroups(group).at(-1).after(group);
+    const { item, kind, ghost, before, target } = drag;
+    if (drop && kind === "group") {
+        if (before) before.before(item);
+        else otherGroups(item).at(-1).after(item);
+    }
+    if (drop && kind === "page" && target) {
+        // Open a collapsed group so the moved page is visible
+        if (target.classList.contains("page-group-collapsed")) target.querySelector(".page-group-toggle").click();
+        target.querySelector(".page-list").append(item);
     }
     ghost.remove();
-    group.classList.remove("is-dragging");
+    item.classList.remove("is-dragging");
     dropLine.hidden = true;
+    dropBox.hidden = true;
     document.body.classList.remove("is-dragging-group");
     drag = null;
 }
@@ -578,16 +621,25 @@ document.addEventListener("pointermove", (event) => {
             clearTimeout(pending.timer); // the finger is scrolling, not dragging
             pending = null;
         } else if (!pending.touch && moved > 5) {
-            beginGroupDrag();
+            beginDrag();
         }
     }
-    if (drag) moveGroupDrag(event.clientX, event.clientY);
+    if (drag) moveDrag(event.clientX, event.clientY);
 });
 
-document.addEventListener("pointerup", () => endGroupDrag(true));
-document.addEventListener("pointercancel", () => endGroupDrag(false));
+document.addEventListener("pointerup", () => endDrag(true));
+document.addEventListener("pointercancel", () => endDrag(false));
 document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") endGroupDrag(false);
+    if (event.key === "Escape") endDrag(false);
+});
+
+// While dragging: no page scrolling by touch, no long-press menu
+document.addEventListener("touchmove", (event) => {
+    if (drag) event.preventDefault();
+}, { passive: false });
+
+document.addEventListener("contextmenu", (event) => {
+    if (pending || drag) event.preventDefault();
 });
 
 // While dragging: no page scrolling by touch, no long-press menu
