@@ -78,7 +78,7 @@ function formatToday() {
     return new Date().toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-function createPage(pageList, title = "Untitled", date = formatToday(), id = crypto.randomUUID()) {
+function createPage(pageList, title = "New page", date = formatToday(), id = crypto.randomUUID()) {
     const newPage = pageTemplate.content.cloneNode(true);
     const page = newPage.querySelector(".page-item");
     page.dataset.id = id;
@@ -88,7 +88,7 @@ function createPage(pageList, title = "Untitled", date = formatToday(), id = cry
     return page;
 }
 
-function createGroup(name = "New group") {
+function createGroup(name = "New folder") {
     const newGroup = groupTemplate.content.cloneNode(true);
     const group = newGroup.querySelector(".page-group");
     group.querySelector(".page-group-title").textContent = name;
@@ -213,6 +213,7 @@ document.addEventListener("keydown", (event) => {
 document.addEventListener("focusout", (event) => {
     if (event.target.matches(".page-item-title, .page-group-title")) {
         event.target.contentEditable = "false";
+        event.target.scrollLeft = 0;
         if (selectedPage && selectedPage.contains(event.target)) pageTitle.textContent = event.target.textContent;
     }
 });
@@ -237,10 +238,10 @@ deleteGroupButton.addEventListener("click", async () => {
 
     if (pages.length > 0) {
         const confirmed = await confirmDialog({
-            title: "Delete this group?",
-            message: "This will permanently delete the group and all its contents. This action cannot be undone.",
-            cancelLabel: "Keep group",
-            confirmLabel: "Delete group",
+            title: "Delete this folder?",
+            message: "This will permanently delete the folder and all of its contents. This action cannot be undone!",
+            cancelLabel: "Keep folder",
+            confirmLabel: "Delete folder",
         });
         if (!confirmed) return;
     }
@@ -259,7 +260,7 @@ deletePageButton.addEventListener("click", async () => {
 
     const confirmed = await confirmDialog({
         title: "Delete this page?",
-        message: "This will permanently delete the page and its content. This action cannot be undone.",
+        message: "This will permanently delete the page and all of its contents. This action cannot be undone!",
         cancelLabel: "Keep page",
         confirmLabel: "Delete page",
     });

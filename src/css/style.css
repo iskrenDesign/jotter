@@ -217,16 +217,29 @@ body {
         padding: var(--space-8) var(--space-8) var(--space-12) var(--space-16);
         border-radius: var(--radius-4);
     }
+    .page-group-icon {
+        display: flex;
+        flex-shrink: 0;
+        margin-inline-end: var(--space-4);
+        color: var(--color-icon-default);
+    }
     .page-group-name {
         display: flex;
         align-items: center;
         gap: var(--space-4);
+        min-width: 0;
         font-size: var(--font-size-md);
         line-height: 1rem;
         color: var(--color-text-secondary);
     }
+    .page-group-title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
     .page-group-toggle {
         display: flex;
+        flex-shrink: 0;
         padding: 0;
         border: none;
         background: none;
@@ -235,6 +248,7 @@ body {
     }
     .page-group-actions {
         display: flex;
+        flex-shrink: 0;
         gap: var(--space-4);
         .icon-button {
             padding: 0;
@@ -276,10 +290,14 @@ body {
         flex-direction: column;
         gap: var(--space-4);
         flex: 1;
+        min-width: 0;
     }
     .page-item-title {
         font-size: var(--font-size-lg);
         line-height: 1rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
     .page-item-date {
         font-size: var(--font-size-sm);
@@ -609,6 +627,7 @@ body {
     outline: 1px solid var(--color-border-brand);
     outline-offset: 2px;
     border-radius: var(--radius-4);
+    text-overflow: clip;
 }
 
 /* Hidden elements */
