@@ -877,3 +877,45 @@ li[data-checked="true"] > div {
     color: var(--color-text-primary);
     cursor: pointer;
 }
+
+
+/* Drag and drop: groups */
+.app .page-group-header:not(:has([contenteditable="true"])) {
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
+.app .page-group.is-dragging {
+    opacity: 0.4;
+}
+
+.app .drag-ghost {
+    position: fixed;
+    z-index: 1000;
+    margin: 0;
+    max-height: 12rem;
+    overflow: hidden;
+    pointer-events: none;
+    background-color: var(--color-background-page);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-12);
+    box-shadow: 0 18px 88px -4px #13192724, 0 8px 28px -6px #1319271F;
+    transform: rotate(-2deg);
+}
+
+.drop-line {
+    position: fixed;
+    z-index: 1000;
+    height: 2px;
+    border-radius: 1px;
+    background-color: var(--color-surface-brand);
+    pointer-events: none;
+}
+
+body.is-dragging-group {
+    user-select: none;
+}
+
+body.is-dragging-group * {
+    cursor: grabbing !important;
+}
