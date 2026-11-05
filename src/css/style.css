@@ -149,6 +149,7 @@ body {
     .theme-switch {
         display: flex;
         justify-content: flex-end;
+        gap: var(--space-8);
         padding: var(--space-8) 0;
         border-top: 1px solid var(--color-border-default);
     }
