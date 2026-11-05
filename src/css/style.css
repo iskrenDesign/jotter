@@ -215,8 +215,9 @@ body {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: var(--space-8) var(--space-8) var(--space-12) var(--space-16);
+        padding: var(--space-8);
         border-radius: var(--radius-4);
+        height: 2.5rem;
     }
     .page-group-icon {
         display: flex;
