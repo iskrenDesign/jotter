@@ -4,7 +4,8 @@ A lightweight, local note-taking app for Windows. Your notes stay on your comput
 <img width="1438" height="928" alt="image" src="https://github.com/user-attachments/assets/42dcbcea-0506-41ce-9034-2deee45d4ac3" />
 
 ## Features
-- **Groups and pages:** Organize notes into groups, and add as many pages as you need to each one.
+- **Groups and pages:** Organize notes into folders, and add as many pages as you need to each one.
+- **Drag & Drop:** Move folders between themselves, and pages between folders.
 - **Rich text editor:** Headings, bold, italic, underline, strikethrough, text color, alignment, bullet, numbered and task lists, links and images, powered by TipTap.
 - **Video cards:** Paste a YouTube or Vimeo link and get a card with the video title. It opens in your default browser.
 - **Search:** Filter pages by title as you type.
