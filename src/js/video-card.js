@@ -57,11 +57,31 @@ export const VideoCard = Node.create({
         }];
     },
 
+    // renderHTML({ node }) {
+    //     const { url, thumbnail, title } = node.attrs;
+    //     const content = [];
+    //     if (thumbnail) content.push(["img", { src: thumbnail, alt: "" }]);
+    //     content.push(["figcaption", {}, title]);
+    //     return ["figure", { "data-video-card": "", "data-url": url, class: "video-card" }, ...content];
+    // },
     renderHTML({ node }) {
         const { url, thumbnail, title } = node.attrs;
         const content = [];
+        
         if (thumbnail) content.push(["img", { src: thumbnail, alt: "" }]);
         content.push(["figcaption", {}, title]);
-        return ["figure", { "data-video-card": "", "data-url": url, class: "video-card" }, ...content];
+        
+        // Update this return statement to include the display and alignment styles
+        return [
+            "figure", 
+            { 
+            "data-video-card": "", 
+            "data-url": url, 
+            class: "video-card",
+            style: "display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto; text-align: center;" 
+            }, 
+            ...content
+        ];
     },
+
 });

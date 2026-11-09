@@ -266,7 +266,7 @@ document.addEventListener("focusout", (event) => {
     }
 });
 
-// Add new group
+// Add new folder/group
 const addGroupButton = groupMenu.querySelector('[data-action="add-group"]');
 
 addGroupButton.addEventListener("click", () => {
@@ -275,7 +275,7 @@ addGroupButton.addEventListener("click", () => {
     startRename(group.querySelector(".page-group-title"));
 });
 
-// Delete group
+// Delete folder/group
 const deleteGroupButton = groupMenu.querySelector('[data-action="delete-group"]');
 
 deleteGroupButton.addEventListener("click", async () => {
