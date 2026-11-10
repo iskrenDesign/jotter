@@ -2,7 +2,7 @@ import { editor } from "./editor.js";
 import { placeMenu } from "./menus.js";
 import { confirmDialog } from "./dialog.js";
 import { loadIndex, saveIndex, loadPage, savePage, deletePage } from "./storage.js";
-import { saveJotFile } from "./jot.js";
+import { saveJotFile, openJotFile, parseJotFile } from "./jot.js";
 
 // Elements
 const app = document.querySelector(".app");
@@ -483,6 +483,63 @@ exportCancelButton.addEventListener("click", cancelExport);
 
 document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") cancelExport();
+});
+
+// Import a .jot file: its folders are added at the top, right below Pinned
+const importMenu = document.querySelector("#import-menu");
+const importMenuButton = document.querySelector(".footer-menu-button");
+const importJotButton = importMenu.querySelector('[data-action="import-jot"]');
+
+// The menu opens upwards, with its right edge lined up with the button
+importMenuButton.addEventListener("click", () => {
+    const rect = importMenuButton.getBoundingClientRect();
+    importMenu.style.top = "auto";
+    importMenu.style.left = "auto";
+    importMenu.style.bottom = window.innerHeight - rect.top + 4 + "px";
+    importMenu.style.right = window.innerWidth - rect.right + "px";
+});
+
+importMenu.addEventListener("toggle", (event) => {
+    importMenuButton.classList.toggle("is-open", event.newState === "open");
+});
+
+async function importJot() {
+    let groups;
+    try {
+        const text = await openJotFile();
+        if (text === null) return;
+        groups = parseJotFile(text);
+    } catch (error) {
+        console.error(error);
+        alert(`The file could not be imported.\n\n${error.message || error}`);
+        return;
+    }
+
+    // Every folder and page gets a new id, so nothing can clash with what you already have
+    let anchor = document.querySelector(".pinned-section");
+    let firstPage = null;
+    let pinOrder = 0;
+    for (const groupData of groups) {
+        const group = createGroup(groupData.name);
+        anchor.after(group);
+        anchor = group;
+        for (const pageData of groupData.pages) {
+            const id = crypto.randomUUID();
+            const page = createPage(group.querySelector(".page-list"), pageData.title, pageData.date || undefined, id);
+            await savePage(id, pageData.content);
+            if (pageData.pinned) page.dataset.pinnedAt = Date.now() + pinOrder++;
+            firstPage ??= page;
+        }
+    }
+
+    renderPinned();
+    selectPage(firstPage);
+    firstPage.scrollIntoView({ block: "nearest" });
+}
+
+importJotButton.addEventListener("click", () => {
+    importMenu.hidePopover();
+    importJot();
 });
 
 // Keyboard shortcuts

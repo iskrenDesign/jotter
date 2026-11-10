@@ -1012,3 +1012,34 @@ body.is-dragging-group * {
     cursor: default;
     pointer-events: none;
 }
+
+
+/* Import menu in the sidebar footer */
+.app .footer-menu-button {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-8) var(--space-12) var(--space-8) var(--space-8);
+    border: none;
+    border-radius: var(--radius-8);
+    background: none;
+    font: inherit;
+    font-size: var(--font-size-lg);
+    line-height: 1rem;
+    color: var(--color-text-primary);
+    text-align: left;
+    cursor: pointer;
+}
+
+.app .footer-menu-button:hover {
+    background-color: var(--color-surface-hover);
+}
+
+.app .footer-menu-button.is-open {
+    background-color: var(--color-surface-brand-hover);
+    color: var(--color-icon-on-surface);
+}
+
+#import-menu {
+    width: max-content;
+}
