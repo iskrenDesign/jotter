@@ -932,3 +932,83 @@ body.is-dragging-group {
 body.is-dragging-group * {
     cursor: grabbing !important;
 }
+
+
+/* Export as .jot: selection mode */
+.app .select-box {
+    display: none;
+    flex-shrink: 0;
+    appearance: none;
+    width: 1rem;
+    height: 1rem;
+    margin: 0 var(--space-4) 0 0;
+    border: 1px solid var(--color-icon-default);
+    border-radius: var(--radius-4);
+    background-position: center;
+    background-size: 100%;
+    cursor: pointer;
+}
+
+.app.export-mode .select-box {
+    display: block;
+}
+
+.app .select-box:checked {
+    border-color: var(--color-surface-brand);
+    background-color: var(--color-surface-brand);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+}
+
+.app .select-box:indeterminate {
+    border-color: var(--color-surface-brand);
+    background-color: var(--color-surface-brand);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14'/%3E%3C/svg%3E");
+}
+
+.app .export-bar {
+    display: none;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--space-8);
+}
+
+.app.export-mode .export-bar {
+    display: flex;
+}
+
+.app .export-button {
+    background-color: var(--color-surface-brand);
+    color: var(--color-text-on-surface);
+}
+
+.app .export-button:hover {
+    background-color: var(--color-surface-brand-hover);
+}
+
+/* Custom icons (PDF and .jot) take the color of the text around them */
+.icon-pdf,
+.icon-jot {
+    display: block;
+    width: 1rem;
+    height: 1rem;
+    background-color: currentColor;
+    -webkit-mask: center / contain no-repeat;
+    mask: center / contain no-repeat;
+}
+
+.icon-pdf {
+    -webkit-mask-image: url("../assets/pdf.svg");
+    mask-image: url("../assets/pdf.svg");
+}
+
+.icon-jot {
+    -webkit-mask-image: url("../assets/jot.svg");
+    mask-image: url("../assets/jot.svg");
+}
+
+/* Menu items that are not available yet */
+.menu-item:disabled {
+    color: var(--color-text-disabled);
+    cursor: default;
+    pointer-events: none;
+}

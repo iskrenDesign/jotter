@@ -2,6 +2,7 @@ import { editor } from "./editor.js";
 import { placeMenu } from "./menus.js";
 import { confirmDialog } from "./dialog.js";
 import { loadIndex, saveIndex, loadPage, savePage, deletePage } from "./storage.js";
+import { saveJotFile } from "./jot.js";
 
 // Elements
 const app = document.querySelector(".app");
@@ -176,6 +177,15 @@ function addPage(group) {
 
 // Sidebar clicks: + new page, chevron, group ⋮, page ⋮, select page
 document.addEventListener("click", (event) => {
+    // Export mode: clicking a page or folder ticks it instead of opening it
+    if (app.classList.contains("export-mode")) {
+        if (event.target.closest(".select-box")) return;
+        const row = event.target.closest(".page-group .page-item, .page-group-header");
+        if (row && !event.target.closest("button")) {
+            row.querySelector(".select-box").click();
+            return;
+        }
+    }
     const addPageButton = event.target.closest(".add-page-button");
         if (addPageButton) {
             addPage(addPageButton.closest(".page-group"));
@@ -357,6 +367,124 @@ searchInput.addEventListener("input", () => {
     });
 });
 
+// Export as .jot: tick groups and pages, then save them as one file
+const exportMenu = document.querySelector("#export-menu");
+const exportButton = document.querySelector(".export-button");
+const exportCancelButton = document.querySelector(".export-cancel");
+
+function pageBoxes(group) {
+    return [...group.querySelectorAll(".page-item .select-box")];
+}
+
+// A folder box is ticked when all its pages are ticked, and half-ticked when only some are
+function updateGroupBox(group) {
+    const boxes = pageBoxes(group);
+    const ticked = boxes.filter((box) => box.checked).length;
+    const groupBox = group.querySelector(".page-group-header .select-box");
+    groupBox.checked = boxes.length > 0 && ticked === boxes.length;
+    groupBox.indeterminate = ticked > 0 && ticked < boxes.length;
+}
+
+function updateExportButton() {
+    exportButton.hidden = !document.querySelector(".page-group .page-item .select-box:checked");
+}
+
+sidebarPages.addEventListener("change", (event) => {
+    const box = event.target.closest(".select-box");
+    if (!box) return;
+    const group = box.closest(".page-group");
+    if (box.closest(".page-group-header")) pageBoxes(group).forEach((pageBox) => (pageBox.checked = box.checked));
+    updateGroupBox(group);
+    updateExportButton();
+});
+
+// item is a page (ticks that page) or a folder (ticks all of its pages)
+function startExport(item) {
+    document.querySelectorAll(".select-box").forEach((box) => {
+        box.checked = false;
+        box.indeterminate = false;
+    });
+    const group = item.closest(".page-group");
+    if (item.matches(".page-group")) pageBoxes(group).forEach((box) => (box.checked = true));
+    else item.querySelector(".select-box").checked = true;
+    updateGroupBox(group);
+    updateExportButton();
+    app.classList.remove("sidebar-collapsed");
+    app.classList.add("export-mode");
+}
+
+function cancelExport() {
+    app.classList.remove("export-mode");
+}
+
+async function exportSelection() {
+    const groups = [];
+    for (const group of document.querySelectorAll(".page-group")) {
+        const pages = [];
+        for (const page of group.querySelectorAll(".page-item")) {
+            if (!page.querySelector(".select-box").checked) continue;
+            pages.push({
+                title: page.querySelector(".page-item-title").textContent,
+                date: page.querySelector(".page-item-date").textContent,
+                pinned: Boolean(page.dataset.pinnedAt),
+                // The open page may have changes that are not saved yet
+                content: page === selectedPage ? editor.getHTML() : await loadPage(page.dataset.id),
+            });
+        }
+        if (pages.length > 0) {
+            groups.push({
+                name: group.querySelector(".page-group-title").textContent,
+                collapsed: group.classList.contains("page-group-collapsed"),
+                pages,
+            });
+        }
+    }
+    if (groups.length === 0) return;
+
+    let fileName = "Jotter export";
+    if (groups.length === 1) fileName = groups[0].pages.length === 1 ? groups[0].pages[0].title : groups[0].name;
+
+    try {
+        if (await saveJotFile(groups, fileName)) cancelExport();
+    } catch (error) {
+        console.error(error);
+        alert(`The file could not be saved.\n\n${error}`);
+    }
+}
+
+const exportPageButton = pageMenu.querySelector('[data-action="export-page"]');
+
+exportPageButton.addEventListener("click", () => {
+    const itemRect = exportPageButton.getBoundingClientRect();
+    const menuRect = pageMenu.getBoundingClientRect();
+    if (menuRect.right + 4 + menuRect.width <= window.innerWidth) {
+        placeMenu(exportMenu, itemRect.top, menuRect.right + 4);
+    } else {
+        placeMenu(exportMenu, itemRect.top, menuRect.left - 4, "end");
+    }
+});
+
+exportMenu.addEventListener("click", (event) => {
+    const item = event.target.closest("[data-export]");
+    if (!item || item.disabled) return;
+    pageMenu.hidePopover();
+    if (item.dataset.export === "jot") startExport(activePage);
+});
+
+const exportGroupButton = groupMenu.querySelector('[data-action="export-group"]');
+
+exportGroupButton.addEventListener("click", () => {
+    groupMenu.hidePopover();
+    startExport(activeGroup);
+});
+
+exportButton.addEventListener("click", exportSelection);
+exportCancelButton.addEventListener("click", cancelExport);
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") cancelExport();
+});
+
 // Keyboard shortcuts
 document.addEventListener("mouseover", (event) => {
     hoveredItem = event.target.closest(".page-item, .page-group-header");
@@ -469,9 +597,7 @@ editor.on("update", () => {
     saveTimers[id] = setTimeout(() => savePage(id, html), 500);
 });
 
-
 // Drag and drop: reorder groups (mouse, pen and touch use the same code)
-// Drag and drop: reorder groups, move pages to another group (mouse, pen and touch use the same code)
 const dropLine = document.createElement("div");
 dropLine.className = "drop-line";
 dropLine.hidden = true;
@@ -495,6 +621,7 @@ function otherGroups(group) {
 
 sidebarPages.addEventListener("pointerdown", (event) => {
     if (event.button !== 0) return;
+    if (app.classList.contains("export-mode")) return;
     if (event.target.closest("button, [contenteditable='true']")) return;
 
     const page = event.target.closest(".page-item");
