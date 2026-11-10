@@ -452,6 +452,22 @@ async function exportSelection() {
     }
 }
 
+// Export as PDF: show the page in the editor, then open the print window ("Save as PDF" is there)
+async function exportPdf(page) {
+    // Reloading the open page could drop changes that are not saved yet, so only switch when needed
+    if (page !== selectedPage) await selectPage(page);
+
+    // Wait until the page and its images are drawn
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    await Promise.all([...document.querySelectorAll(".tiptap img")].map((image) => image.decode().catch(() => {})));
+
+    // The print window suggests the page title as the file name
+    const previousTitle = document.title;
+    document.title = page.querySelector(".page-item-title").textContent.trim() || "Jotter";
+    window.addEventListener("afterprint", () => { document.title = previousTitle; }, { once: true });
+    window.print();
+}
+
 const exportPageButton = pageMenu.querySelector('[data-action="export-page"]');
 
 exportPageButton.addEventListener("click", () => {
@@ -469,6 +485,7 @@ exportMenu.addEventListener("click", (event) => {
     if (!item || item.disabled) return;
     pageMenu.hidePopover();
     if (item.dataset.export === "jot") startExport(activePage);
+    if (item.dataset.export === "pdf") exportPdf(activePage);
 });
 
 const exportGroupButton = groupMenu.querySelector('[data-action="export-group"]');
