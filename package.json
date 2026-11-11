@@ -4,7 +4,8 @@
   "description": "A lightweight, local note-taking app",
   "main": "index.js",
   "scripts": {
-    "build:tiptap": "esbuild tiptap-entry.js --bundle --format=esm --minify --outfile=src/js/vendor/tiptap.js"
+    "build:tiptap": "esbuild tiptap-entry.js --bundle --format=esm --minify --outfile=src/js/vendor/tiptap.js",
+    "release:json": "node scripts/release-json.mjs"
   },
   "repository": {
     "type": "git",
