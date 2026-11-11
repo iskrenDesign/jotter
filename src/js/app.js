@@ -4,6 +4,7 @@ import { confirmDialog } from "./dialog.js";
 import { loadIndex, saveIndex, loadPage, savePage, deletePage } from "./storage.js";
 import { saveJotFile, openJotFile, parseJotFile } from "./jot.js";
 import { buildDocx, saveDocxFile } from "./docx.js";
+import { checkForUpdates } from "./updater.js";
 
 // Elements
 const app = document.querySelector(".app");
@@ -574,6 +575,13 @@ importJotButton.addEventListener("click", () => {
     importJot();
 });
 
+const checkUpdatesButton = importMenu.querySelector('[data-action="check-updates"]');
+
+checkUpdatesButton.addEventListener("click", () => {
+    importMenu.hidePopover();
+    checkForUpdates({ manual: true });
+});
+
 // Keyboard shortcuts
 document.addEventListener("mouseover", (event) => {
     hoveredItem = event.target.closest(".page-item, .page-group-header");
@@ -866,3 +874,6 @@ document.addEventListener("touchmove", (event) => {
 document.addEventListener("contextmenu", (event) => {
     if (pending || drag) event.preventDefault();
 });
+
+// Look for a new version a few seconds after the app starts
+setTimeout(() => checkForUpdates(), 3000);

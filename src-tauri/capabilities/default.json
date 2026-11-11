@@ -9,6 +9,7 @@
     "core:default",
     "fs:default",
     "fs:write-all",
+    "updater:default",
     "dialog:default",
     {
       "identifier": "fs:scope",
