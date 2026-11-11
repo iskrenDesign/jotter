@@ -4,7 +4,7 @@ const fs = window.__TAURI__?.fs;
 
 export const JOT_VERSION = 1;
 
-function cleanFileName(name) {
+export function cleanFileName(name) {
     const cleaned = name.replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, " ").trim().slice(0, 80);
     return cleaned || "Jotter export";
 }

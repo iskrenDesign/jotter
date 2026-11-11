@@ -3,6 +3,7 @@ import { placeMenu } from "./menus.js";
 import { confirmDialog } from "./dialog.js";
 import { loadIndex, saveIndex, loadPage, savePage, deletePage } from "./storage.js";
 import { saveJotFile, openJotFile, parseJotFile } from "./jot.js";
+import { buildDocx, saveDocxFile } from "./docx.js";
 
 // Elements
 const app = document.querySelector(".app");
@@ -468,6 +469,19 @@ async function exportPdf(page) {
     window.print();
 }
 
+// Export as Word: build a .docx file from the page and save it
+async function exportWord(page) {
+    const title = page.querySelector(".page-item-title").textContent.trim() || "Untitled";
+    try {
+        // The open page may have changes that are not saved yet
+        const html = page === selectedPage ? editor.getHTML() : await loadPage(page.dataset.id);
+        await saveDocxFile(await buildDocx(html), title);
+    } catch (error) {
+        console.error(error);
+        alert(`The Word file could not be created.\n\n${error}`);
+    }
+}
+
 const exportPageButton = pageMenu.querySelector('[data-action="export-page"]');
 
 exportPageButton.addEventListener("click", () => {
@@ -486,6 +500,7 @@ exportMenu.addEventListener("click", (event) => {
     pageMenu.hidePopover();
     if (item.dataset.export === "jot") startExport(activePage);
     if (item.dataset.export === "pdf") exportPdf(activePage);
+    if (item.dataset.export === "word") exportWord(activePage);
 });
 
 const exportGroupButton = groupMenu.querySelector('[data-action="export-group"]');
