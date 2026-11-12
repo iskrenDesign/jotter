@@ -24,6 +24,7 @@ const searchInput = document.querySelector(".search-input");
 let activeGroup = null;  // the group whose menu is open
 let activePage = null;   // the page whose menu is open
 let selectedPage = null; // the page shown in the editor
+let renameInHeader = false; // Rename page edits the title in the header, not in the sidebar
 let hoveredItem = null;  // the page or group header under the mouse
 
 // Sidebar collapse
@@ -156,8 +157,9 @@ function togglePin(page) {
 }
 
 // Page menu
-function preparePageMenu(page) {
+function preparePageMenu(page, fromHeader = false) {
     activePage = page;
+    renameInHeader = fromHeader;
     pageMenu.querySelector('[data-action="pin-page"] .menu-item-label').textContent =
         page.dataset.pinnedAt ? "Unpin page" : "Pin page";
     pageMenu.querySelector(".menu-item-move").hidden = document.querySelectorAll(".page-group").length < 2;
@@ -166,7 +168,7 @@ function preparePageMenu(page) {
 headerPageMenu.addEventListener("click", () => {
     const rect = headerPageMenu.getBoundingClientRect();
     placeMenu(pageMenu, rect.bottom + 4, rect.right, "end");
-    preparePageMenu(selectedPage);
+    preparePageMenu(selectedPage, true);
 });
 
 // New page at the top of a group
@@ -249,6 +251,13 @@ const renamePageButton = pageMenu.querySelector('[data-action="rename-page"]');
 
 renamePageButton.addEventListener("click", () => {
     pageMenu.hidePopover();
+
+    // Opened from the header (or with Ctrl+R): rename the title in the header
+    if (renameInHeader && activePage === selectedPage) {
+        startRename(pageTitle);
+        return;
+    }
+
     const pageGroup = activePage.closest(".page-group");
     if (pageGroup.classList.contains("page-group-collapsed")) pageGroup.querySelector(".page-group-toggle").click();
     startRename(activePage.querySelector(".page-item-title"));
@@ -263,8 +272,13 @@ renameGroupButton.addEventListener("click", () => {
 
 // Finish renaming: Enter or click elsewhere
 document.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" && event.target.matches(".page-item-title, .page-group-title")) {
+    if (event.key === "Enter" && event.target.matches(".page-item-title, .page-group-title, .page-title")) {
         event.preventDefault();
+        event.target.blur();
+    }
+    // Escape cancels renaming in the header
+    if (event.key === "Escape" && event.target.matches(".page-title") && selectedPage) {
+        event.target.textContent = selectedPage.querySelector(".page-item-title").textContent;
         event.target.blur();
     }
 });
@@ -276,6 +290,19 @@ document.addEventListener("focusout", (event) => {
         if (selectedPage && selectedPage.contains(event.target)) pageTitle.textContent = event.target.textContent;
         renderPinned();
     }
+});
+
+// Finish renaming in the header: the new name goes to the sidebar too
+document.addEventListener("focusout", (event) => {
+    if (!event.target.matches(".page-title")) return;
+    event.target.contentEditable = "false";
+    event.target.scrollLeft = 0;
+    if (!selectedPage) return;
+    const sidebarTitle = selectedPage.querySelector(".page-item-title");
+    const name = event.target.textContent.trim();
+    if (name) sidebarTitle.textContent = name; // an empty name keeps the old one
+    event.target.textContent = sidebarTitle.textContent;
+    renderPinned();
 });
 
 // Add new folder/group
@@ -584,7 +611,7 @@ checkUpdatesButton.addEventListener("click", () => {
 
 // Keyboard shortcuts
 document.addEventListener("mouseover", (event) => {
-    hoveredItem = event.target.closest(".page-item, .page-group-header");
+    hoveredItem = event.target.closest(".page-item, .page-group-header, .page-title");
 });
 
 document.addEventListener("keydown", (event) => {
@@ -610,14 +637,27 @@ document.addEventListener("keydown", (event) => {
         return;
     }
 
+    // Ctrl+R while typing in the page: rename the page in the header
+    if (key === "r" && !event.shiftKey && selectedPage && event.target.closest(".tiptap")) {
+        event.preventDefault();
+        activePage = selectedPage;
+        renameInHeader = true;
+        renamePageButton.click();
+        return;
+    }
+
     if (event.target.isContentEditable || event.target.matches("input")) return;
 
     const target = hoveredItem || selectedPage;
     if (!target || (key !== "r" && key !== "d")) return;
     event.preventDefault();
 
-    if (target.matches(".page-item")) {
-        activePage = originalOf(target);
+    if (target.matches(".page-item, .page-title")) {
+        // Pointing at a sidebar page: act on it in the sidebar. Pointing at the header
+        // title, or at nothing: act on the open page in the header.
+        renameInHeader = !target.matches(".page-item") || !hoveredItem;
+        activePage = renameInHeader ? selectedPage : originalOf(target);
+        if (!activePage) return;
         if (key === "r") renamePageButton.click();
         if (key === "d") deletePageButton.click();
     } else {
