@@ -167,6 +167,27 @@ colorInput.addEventListener("change", () => {
     editor.commands.focus();
 });
 
+
+// Reset text color: remove the custom color, so the text follows the theme again
+const colorResetButton = document.querySelector(".toolbar-color-reset");
+
+colorResetButton.addEventListener("click", () => {
+    if (!editor.isEditable) return;
+    editor.chain().focus().unsetColor().run();
+});
+
+// True when any selected text (or the text at the cursor) has its own color
+function selectionHasColor() {
+    const { from, to, empty } = editor.state.selection;
+    if (empty) return Boolean(editor.getAttributes("textStyle").color);
+    let found = false;
+    editor.state.doc.nodesBetween(from, to, (node) => {
+        if (node.marks.some((mark) => mark.type.name === "textStyle" && mark.attrs.color)) found = true;
+        return !found;
+    });
+    return found;
+}
+
 // Link
 const linkButton = document.querySelector('[data-command="link"]');
 const linkMenu = document.querySelector("#link-menu");
@@ -304,6 +325,7 @@ function updateToolbar() {
     const color = editor.getAttributes("textStyle").color;
     colorSwatch.style.backgroundColor = color || "";
     colorInput.value = color && color.startsWith("#") ? color : "#1f1f1f";
+    colorResetButton.disabled = !editor.isEditable || !selectionHasColor();
 }
 
 editor.on("transaction", updateToolbar);
