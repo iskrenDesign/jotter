@@ -86,12 +86,8 @@ const formats = {
     "italic":       { run: () => editor.chain().focus().toggleItalic().run(),          active: () => editor.isActive("italic") },
     "underline":    { run: () => editor.chain().focus().toggleUnderline().run(),       active: () => editor.isActive("underline") },
     "strike":       { run: () => editor.chain().focus().toggleStrike().run(),          active: () => editor.isActive("strike") },
-    "align-start":  { run: () => editor.chain().focus().setTextAlign("left").run(),    active: () => editor.isActive({ textAlign: "left" }) },
-    "align-center": { run: () => editor.chain().focus().setTextAlign("center").run(),  active: () => editor.isActive({ textAlign: "center" }) },
-    "align-end":    { run: () => editor.chain().focus().setTextAlign("right").run(),   active: () => editor.isActive({ textAlign: "right" }) },
-    "ordered-list": { run: () => editor.chain().focus().toggleOrderedList().run(),     active: () => editor.isActive("orderedList") },
-    "bullet-list":  { run: () => editor.chain().focus().toggleBulletList().run(),      active: () => editor.isActive("bulletList") },
     "task-list":    { run: () => editor.chain().focus().toggleTaskList().run(),        active: () => editor.isActive("taskList") },
+    "quote":        { run: () => editor.chain().focus().toggleBlockquote().run(),      active: () => editor.isActive("blockquote") },
     "link":         { run: () => {},                                                   active: () => editor.isActive("link") },
 };
 
@@ -101,6 +97,53 @@ toolbar.addEventListener("click", (event) => {
     const format = formats[button.dataset.command];
     if (format) format.run();
 });
+
+// Dropdowns on the toolbar: text alignment and lists
+const alignments = {
+    left:   { run: () => editor.chain().focus().setTextAlign("left").run(),   active: () => editor.isActive({ textAlign: "left" }) },
+    center: { run: () => editor.chain().focus().setTextAlign("center").run(), active: () => editor.isActive({ textAlign: "center" }) },
+    right:  { run: () => editor.chain().focus().setTextAlign("right").run(),  active: () => editor.isActive({ textAlign: "right" }) },
+};
+
+const lists = {
+    bullet:  { run: () => editor.chain().focus().toggleBulletList().run(),  active: () => editor.isActive("bulletList") },
+    ordered: { run: () => editor.chain().focus().toggleOrderedList().run(), active: () => editor.isActive("orderedList") },
+};
+
+// A toolbar button that opens a menu of choices and shows the icon of the current choice.
+// Returns a function that refreshes the button and the menu, and gives back the current choice.
+function choiceMenu({ command, menuId, key, choices, fallback }) {
+    const button = document.querySelector(`[data-command="${command}"]`);
+    const menu = document.querySelector(`#${menuId}`);
+
+    button.addEventListener("click", () => {
+        placeBelowToolbar(menu, button.getBoundingClientRect().left);
+    });
+
+    menu.addEventListener("click", (event) => {
+        const item = event.target.closest(`[data-${key}]`);
+        if (!item || !editor.isEditable) return;
+        choices[item.dataset[key]].run();
+        menu.hidePopover();
+    });
+
+    return () => {
+        const current = Object.keys(choices).find((name) => choices[name].active());
+        menu.querySelectorAll(`[data-${key}]`).forEach((item) => {
+            item.setAttribute("aria-checked", item.dataset[key] === current);
+        });
+        const shown = current || fallback;
+        if (button.dataset.shown !== shown) {
+            button.dataset.shown = shown;
+            button.querySelector(".toolbar-current-icon").innerHTML = menu.querySelector(`[data-${key}="${shown}"] .menu-item-icon`).innerHTML;
+        }
+        return current;
+    };
+}
+
+const updateAlignment = choiceMenu({ command: "align", menuId: "align-menu", key: "align", choices: alignments, fallback: "left" });
+const updateLists = choiceMenu({ command: "list", menuId: "list-menu", key: "list", choices: lists, fallback: "bullet" });
+const listButton = document.querySelector('[data-command="list"]');
 
 // Text style menu
 const textStyleMenu = document.querySelector("#text-style-menu");
@@ -166,7 +209,6 @@ colorInput.addEventListener("input", () => {
 colorInput.addEventListener("change", () => {
     editor.commands.focus();
 });
-
 
 // Reset text color: remove the custom color, so the text follows the theme again
 const colorResetButton = document.querySelector(".toolbar-color-reset");
@@ -247,60 +289,9 @@ async function resizeImage(file, maxWidth) {
     return canvas.toDataURL("image/webp", 0.8);
 }
 
-// Options menu
-const optionsButton = document.querySelector('[data-command="options"]');
-const optionsMenu = document.querySelector("#options-menu");
-
-const options = {
-    copy: () => {
-        editor.commands.focus();
-        document.execCommand("copy");
-    },
-    cut: () => {
-        editor.commands.focus();
-        document.execCommand("cut");
-    },
-    paste: async () => {
-        try {
-            const items = await navigator.clipboard.read();
-            for (const item of items) {
-                if (item.types.includes("text/html")) {
-                    const html = await (await item.getType("text/html")).text();
-                    editor.chain().focus().insertContent(html).run();
-                    return;
-                }
-                if (item.types.includes("text/plain")) {
-                    const text = await (await item.getType("text/plain")).text();
-                    if (text) editor.chain().focus().insertContent({ type: "text", text }).run();
-                    return;
-                }
-            }
-        } catch {
-            alert("Jotter couldn't read the clipboard. Use Ctrl+V instead.");
-        }
-    },
-    duplicate: () => {
-        const { to } = editor.state.selection;
-        const copy = editor.state.selection.content().content.toJSON();
-        editor.chain().focus().insertContentAt(to, copy).run();
-    },
-    print: () => window.print(),
-    delete: () => editor.chain().focus().deleteSelection().run(),
-};
-
-optionsButton.addEventListener("click", () => {
-    placeBelowToolbar(optionsMenu, optionsButton.getBoundingClientRect().left);
-    const nothingSelected = editor.state.selection.empty;
-    optionsMenu.querySelectorAll('[data-option="copy"], [data-option="cut"], [data-option="duplicate"], [data-option="delete"]').forEach((item) => {
-        item.disabled = nothingSelected;
-    });
-});
-
-optionsMenu.addEventListener("click", async (event) => {
-    const item = event.target.closest("[data-option]");
-    if (!item || !editor.isEditable) return;
-    optionsMenu.hidePopover();
-    await options[item.dataset.option]();
+// Print
+document.querySelector(".toolbar-print").addEventListener("click", () => {
+    if (editor.isEditable) window.print();
 });
 
 // Keep the toolbar in sync with the cursor
@@ -309,6 +300,9 @@ function updateToolbar() {
         const format = formats[button.dataset.command];
         if (format) button.setAttribute("aria-pressed", format.active());
     });
+
+    updateAlignment();
+    listButton.setAttribute("aria-pressed", Boolean(updateLists()));
 
     const current = Object.keys(textStyles).find((key) => textStyles[key].active());
     textStyleButton.querySelector("span").textContent = current ? textStyles[current].label : "Normal text";
