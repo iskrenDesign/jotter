@@ -69,26 +69,27 @@
 /* Dark theme: set by data-theme on <html> */
 :root[data-theme="dark"] {
     color-scheme: dark;
-    --color-background-page: #1A1A1A;
-    --color-background-page-subtle: #232323;
-    --color-background-paper: #242528;
+    --color-background-page: #0f0e0e;
+    --color-background-page-subtle: #191918;
+    --color-background-paper: #191918;
     /* Surface */
-    --color-surface-default: #242528;
+    --color-surface-default: #212121;
     --color-surface-transparent: #2425281A;
-    --color-surface-hover: #FFFFFF1A;
+    --color-surface-hover: #515151;
     --color-surface-inverted: #FAFAFA;
     /* Text */
     --color-text-primary: #FAFAFA;
-    --color-text-secondary: #acacad;
+    --color-text-secondary: #a3a3a3;
     --color-text-inverted: #1F1F1F;
     --color-text-error: #EE443F;
     --color-text-link: #7AB4FF;
     /* Icons */
     --color-icon-default: #FFFFFF;
+    --color-icon-disabled: #a3a3a3;
     --color-icon-active: #FFFFFF;
     --color-icon-error: #EE443F;
     /* Border */
-    --color-border-default: #525252;
+    --color-border-default: #515151;
 }
 
 /* Body */
@@ -108,6 +109,9 @@ hr {
 
 /* App */
 .app {
+    /* svg {
+        shape-rendering: crispEdges;
+    } */
     a {
         cursor: pointer;
     }
@@ -157,7 +161,7 @@ hr {
         flex: 1;
         min-height: 0;
         overflow-y: auto;
-        z-index: 99999;
+        z-index: 99;
     }
 
     /* Theme switch */
@@ -247,7 +251,7 @@ hr {
         min-width: 0;
         font-size: var(--font-size-lg);
         /* line-height: 1rem; */
-        color: var(--color-text-secondary);
+        color: var(--color-text-primary);
     }
     .page-group-title {
         color: var(--color-text-primary);
@@ -269,7 +273,7 @@ hr {
         flex-shrink: 0;
         gap: var(--space-4);
         .icon-button {
-            padding: 0;
+            padding: var(--space-4);
         }
     }
     .page-group-collapsed {
@@ -283,7 +287,7 @@ hr {
 
     /* Pages */
     .page-list {
-        margin: 0;
+        margin: 0 0 0 var(--space-16);
         padding: 0;
         list-style: none;
     }
@@ -291,12 +295,12 @@ hr {
         display: flex;
         align-items: center;
         gap: var(--space-4);
-        padding: var(--space-12) var(--space-12) var(--space-12) var(--space-16);
+        padding: var(--space-12) var(--space-12) var(--space-12) var(--space-12);
         border-radius: var(--radius-8);
         cursor: pointer;
         &:hover,
         &[aria-current="page"] {
-            background-color: var(--color-surface-hover);
+            background-color: var(--color-surface-default);
         }
         &:hover .page-item-menu,
         &:focus-within .page-item-menu {
@@ -311,7 +315,7 @@ hr {
         padding: var(--space-16) var(--space-12);
         font-size: var(--font-size-lg);
         line-height: 1rem;
-        color: var(--color-text-secondary);
+        color: var(--color-text-primary);
     }
     .page-item-text {
         display: flex;
@@ -406,7 +410,7 @@ hr {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: var(--space-8);
+        padding: var(--space-12);
         border: none;
         border-radius: var(--radius-4);
         background: none;
@@ -437,7 +441,7 @@ hr {
     }
     .toolbar-select {
         min-width: 8.75rem;
-        padding: var(--space-12) var(--space-12) var(--space-12) var(--space-16);
+        padding: var(--space-12);
         color: var(--color-text-primary);
     }
     .toolbar-font-size-value {
@@ -449,11 +453,11 @@ hr {
         position: relative;
         align-self: stretch;
         gap: var(--space-4);
-        padding: var(--space-8) var(--space-4) var(--space-8) var(--space-8);
+        padding: var(--space-4);
     }
     .toolbar-color-swatch {
-        width: 1.5rem;
-        height: 1.5rem;
+        width: 2rem;
+        height: 2rem;
         border-radius: var(--radius-4);
         background-color: var(--color-text-primary);
     }
@@ -547,7 +551,7 @@ hr {
 .toolbar-menu {
     width: 16.25rem;
     .menu-item {
-        padding:var(--space-8) var(--space-12);
+        padding: var(--space-12);
         &[aria-checked="true"] {
             background-color: var(--color-surface-hover);
         }
@@ -807,50 +811,6 @@ hr {
         p:last-child {
             margin-bottom: 0;
         }
-    }
-    .tableWrapper {
-        margin: var(--space-16) 0;
-        overflow-x: auto;
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        table-layout: fixed;
-    }
-    td,
-    th {
-        position: relative;
-        min-width: 2rem;
-        padding: var(--space-8) var(--space-12);
-        border: 1px solid var(--color-text-disabled);
-        vertical-align: top;
-        p {
-            margin: 0;
-        }
-    }
-    th {
-        background-color: var(--color-surface-hover);
-        font-weight: 700;
-        text-align: left;
-    }
-    .selectedCell::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background-color: color-mix(in srgb, var(--color-surface-brand) 18%, transparent);
-        pointer-events: none;
-    }
-    .column-resize-handle {
-        position: absolute;
-        top: 0;
-        right: -2px;
-        bottom: 0;
-        width: 4px;
-        background-color: var(--color-surface-brand);
-        pointer-events: none;
-    }
-    &.resize-cursor {
-        cursor: col-resize;
     }
 }
 
@@ -1152,4 +1112,138 @@ body.is-dragging-group * {
 .update-progress::-webkit-progress-value {
     background-color: var(--color-surface-brand);
     border-radius: var(--radius-4);
+}
+
+/* Tables in the editor */
+.tiptap .tableWrapper {
+    width: 100%;
+    margin: var(--space-16) 0;
+    overflow-x: auto;
+}
+
+.tiptap table {
+    width: 100%!important;
+    max-width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.tiptap td,
+.tiptap th {
+    position: relative;
+    min-width: 2rem;
+    padding: var(--space-8) var(--space-12);
+    border: 1px solid var(--color-text-disabled);
+    vertical-align: top;
+    overflow-wrap: break-word; /* Prevents long words from breaking fixed layout */
+    word-break: break-word;
+}
+
+.tiptap td p,
+.tiptap th p {
+    margin: 0;
+}
+
+.tiptap th {
+    background-color: var(--color-surface-default);
+    font-weight: 700;
+    text-align: left;
+}
+
+.tiptap .selectedCell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: color-mix(in srgb, var(--color-surface-brand) 18%, transparent);
+    pointer-events: none;
+}
+
+.tiptap .column-resize-handle {
+    position: absolute;
+    top: 0;
+    right: -2px;
+    bottom: -2px;
+    width: var(--space-4);
+    background-color: var(--color-surface-brand);
+    pointer-events: none;
+}
+
+.tiptap.resize-cursor {
+    cursor: col-resize;
+}
+
+/* Table grips and their menu */
+.table-handle {
+    position: fixed;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid var(--color-text-disabled);
+    border-radius: var(--radius-4);
+    background-color: var(--color-surface-default);
+    color: var(--color-icon-default);
+    cursor: pointer;
+}
+
+.table-handle[hidden] {
+    display: none;
+}
+
+.table-handle:hover {
+    background-color: var(--color-surface-default);
+}
+
+.table-handle svg {
+    width: var(--space-16);
+    height: var(--space-16);
+}
+
+.table-handle-row {
+    width: 1rem;
+    height: 1.5rem;
+}
+
+.table-handle-column {
+    width: 1.5rem;
+    height: 1rem;
+}
+
+.table-handle-table {
+    width: 1rem;
+    height: 1rem;
+}
+
+.table-handle-menu .menu-item {
+    justify-content: space-between;
+}
+
+.table-switch {
+    position: relative;
+    flex-shrink: 0;
+    width: 28px;
+    height: 1rem;
+    border-radius: 8px;
+    background-color: var(--color-text-disabled);
+}
+
+.table-switch::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: var(--space-12);
+    height: var(--space-12);
+    border-radius: 50%;
+    background-color: #ffffff;
+    transition: transform 0.15s;
+}
+
+.table-switch[data-on="true"] {
+    background-color: var(--color-surface-brand);
+}
+
+.table-switch[data-on="true"]::after {
+    transform: translateX(12px);
 }
