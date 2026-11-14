@@ -1,6 +1,7 @@
 import { Editor, StarterKit, TextAlign, TaskList, TaskItem, TextStyle, FontSize, Color, Image, TableKit, PaginationPlus } from "./vendor/tiptap.js";
 import { placeMenu } from "./menus.js";
 import { VideoCard, videoProvider, getVideoInfo } from "./video-card.js";
+import { setupTableHandles } from "./table-handles.js";
 
 // In the app, open links in the user's browser; in the browser, a new tab
 const openLink = window.__TAURI__?.opener?.openUrl ?? ((url) => window.open(url, "_blank"));
@@ -20,7 +21,7 @@ export const editor = new Editor({
         FontSize,
         Color,
         Image.configure({ allowBase64: true }),
-        TableKit.configure({ table: { resizable: true } }),
+        TableKit.configure({ table: { resizable: true, handleWidth: 6, cellMinWidth: 60 } }),
         VideoCard,
         PaginationPlus.configure({
             pageWidth: 794,
@@ -146,29 +147,15 @@ const updateAlignment = choiceMenu({ command: "align", menuId: "align-menu", key
 const updateLists = choiceMenu({ command: "list", menuId: "list-menu", key: "list", choices: lists, fallback: "bullet" });
 const listButton = document.querySelector('[data-command="list"]');
 
-// Table: the button inserts a table, or (inside a table) opens a menu to edit it
+// Table: the button inserts a table. Rows, columns and the table itself are edited with the grips next to them
 const tableButton = document.querySelector('[data-command="table"]');
-const tableMenu = document.querySelector("#table-menu");
-const tableActions = ["addRowBefore", "addRowAfter", "addColumnBefore", "addColumnAfter", "deleteRow", "deleteColumn", "toggleHeaderRow", "deleteTable"];
 
-tableButton.addEventListener("click", (event) => {
-    if (!editor.isEditable) {
-        event.preventDefault();
-    } else if (editor.isActive("table")) {
-        // The browser opens the menu, we only place it
-        placeBelowToolbar(tableMenu, tableButton.getBoundingClientRect().left);
-    } else {
-        event.preventDefault(); // do not open the menu
-        editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
-    }
+tableButton.addEventListener("click", () => {
+    if (!editor.isEditable) return;
+    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
 });
 
-tableMenu.addEventListener("click", (event) => {
-    const item = event.target.closest("[data-table]");
-    if (!item || !editor.isEditable || !tableActions.includes(item.dataset.table)) return;
-    editor.chain().focus()[item.dataset.table]().run();
-    tableMenu.hidePopover();
-});
+setupTableHandles(editor, placeMenu);
 
 // Text style menu
 const textStyleMenu = document.querySelector("#text-style-menu");
@@ -329,11 +316,7 @@ function updateToolbar() {
     updateAlignment();
     listButton.setAttribute("aria-pressed", Boolean(updateLists()));
 
-    // Inside a table the button opens the table menu, outside it inserts a table
-    const inTable = editor.isActive("table");
-    tableButton.setAttribute("aria-pressed", inTable);
-    if (inTable) tableButton.setAttribute("popovertarget", "table-menu");
-    else tableButton.removeAttribute("popovertarget");
+    tableButton.setAttribute("aria-pressed", editor.isActive("table"));
 
     const current = Object.keys(textStyles).find((key) => textStyles[key].active());
     textStyleButton.querySelector("span").textContent = current ? textStyles[current].label : "Normal text";
