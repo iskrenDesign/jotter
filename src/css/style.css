@@ -99,6 +99,12 @@ body {
     font-family: var(--font-body);
     :focus { outline: 1px solid var(--color-border-brand); }
 }
+hr {
+    width: 99%;
+    margin: var(--space-8) auto;
+    color: var(--color-border-default);
+    border: 1px solid var(--color-border-default);
+}
 
 /* App */
 .app {
@@ -151,6 +157,7 @@ body {
         flex: 1;
         min-height: 0;
         overflow-y: auto;
+        z-index: 99999;
     }
 
     /* Theme switch */
@@ -507,7 +514,7 @@ body {
     background: none;
     font: inherit;
     font-size: var(--font-size-lg);
-    line-height: 1rem;
+    /* line-height: 1rem; */
     color: var(--color-text-primary);
     text-align: left;
     cursor: pointer;
@@ -801,6 +808,50 @@ body {
             margin-bottom: 0;
         }
     }
+    .tableWrapper {
+        margin: var(--space-16) 0;
+        overflow-x: auto;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+    td,
+    th {
+        position: relative;
+        min-width: 2rem;
+        padding: var(--space-8) var(--space-12);
+        border: 1px solid var(--color-text-disabled);
+        vertical-align: top;
+        p {
+            margin: 0;
+        }
+    }
+    th {
+        background-color: var(--color-surface-hover);
+        font-weight: 700;
+        text-align: left;
+    }
+    .selectedCell::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-color: color-mix(in srgb, var(--color-surface-brand) 18%, transparent);
+        pointer-events: none;
+    }
+    .column-resize-handle {
+        position: absolute;
+        top: 0;
+        right: -2px;
+        bottom: 0;
+        width: 4px;
+        background-color: var(--color-surface-brand);
+        pointer-events: none;
+    }
+    &.resize-cursor {
+        cursor: col-resize;
+    }
 }
 
 .tiptap ul[data-type="taskList"] {
@@ -881,7 +932,7 @@ li[data-checked="true"] > div {
         top: 0;
         bottom: 0;
         left: 0;
-        z-index: 2;
+        z-index: 9999999;
         box-shadow: 0 18px 88px -4px #13192724, 0 8px 28px -6px #1319271F;
     }
 }
@@ -1019,8 +1070,8 @@ body.is-dragging-group * {
 .icon-pdf,
 .icon-jot {
     display: block;
-    width: 1rem;
-    height: 1rem;
+    width: 1.5rem;
+    height: 1.5rem;
     background-color: currentColor;
     -webkit-mask: center / contain no-repeat;
     mask: center / contain no-repeat;
