@@ -1,4 +1,4 @@
-import { Editor, StarterKit, TextAlign, TaskList, TaskItem, TextStyle, FontSize, Color, Image, PaginationPlus } from "./vendor/tiptap.js";
+import { Editor, StarterKit, TextAlign, TaskList, TaskItem, TextStyle, FontSize, Color, Image, TableKit, PaginationPlus } from "./vendor/tiptap.js";
 import { placeMenu } from "./menus.js";
 import { VideoCard, videoProvider, getVideoInfo } from "./video-card.js";
 
@@ -20,6 +20,7 @@ export const editor = new Editor({
         FontSize,
         Color,
         Image.configure({ allowBase64: true }),
+        TableKit.configure({ table: { resizable: true } }),
         VideoCard,
         PaginationPlus.configure({
             pageWidth: 794,
@@ -144,6 +145,30 @@ function choiceMenu({ command, menuId, key, choices, fallback }) {
 const updateAlignment = choiceMenu({ command: "align", menuId: "align-menu", key: "align", choices: alignments, fallback: "left" });
 const updateLists = choiceMenu({ command: "list", menuId: "list-menu", key: "list", choices: lists, fallback: "bullet" });
 const listButton = document.querySelector('[data-command="list"]');
+
+// Table: the button inserts a table, or (inside a table) opens a menu to edit it
+const tableButton = document.querySelector('[data-command="table"]');
+const tableMenu = document.querySelector("#table-menu");
+const tableActions = ["addRowBefore", "addRowAfter", "addColumnBefore", "addColumnAfter", "deleteRow", "deleteColumn", "toggleHeaderRow", "deleteTable"];
+
+tableButton.addEventListener("click", (event) => {
+    if (!editor.isEditable) {
+        event.preventDefault();
+    } else if (editor.isActive("table")) {
+        // The browser opens the menu, we only place it
+        placeBelowToolbar(tableMenu, tableButton.getBoundingClientRect().left);
+    } else {
+        event.preventDefault(); // do not open the menu
+        editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+    }
+});
+
+tableMenu.addEventListener("click", (event) => {
+    const item = event.target.closest("[data-table]");
+    if (!item || !editor.isEditable || !tableActions.includes(item.dataset.table)) return;
+    editor.chain().focus()[item.dataset.table]().run();
+    tableMenu.hidePopover();
+});
 
 // Text style menu
 const textStyleMenu = document.querySelector("#text-style-menu");
@@ -303,6 +328,12 @@ function updateToolbar() {
 
     updateAlignment();
     listButton.setAttribute("aria-pressed", Boolean(updateLists()));
+
+    // Inside a table the button opens the table menu, outside it inserts a table
+    const inTable = editor.isActive("table");
+    tableButton.setAttribute("aria-pressed", inTable);
+    if (inTable) tableButton.setAttribute("popovertarget", "table-menu");
+    else tableButton.removeAttribute("popovertarget");
 
     const current = Object.keys(textStyles).find((key) => textStyles[key].active());
     textStyleButton.querySelector("span").textContent = current ? textStyles[current].label : "Normal text";

@@ -5,3 +5,4 @@ export { TaskList, TaskItem } from "@tiptap/extension-list";
 export { TextStyle, FontSize, Color } from "@tiptap/extension-text-style";
 export { default as Image } from "@tiptap/extension-image";
 export { PaginationPlus } from "tiptap-pagination-plus";
+export { TableKit } from "@tiptap/extension-table";
