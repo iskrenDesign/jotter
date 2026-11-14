@@ -79,7 +79,7 @@
     --color-surface-inverted: #FAFAFA;
     /* Text */
     --color-text-primary: #FAFAFA;
-    --color-text-secondary: #F0F0F0;
+    --color-text-secondary: #acacad;
     --color-text-inverted: #1F1F1F;
     --color-text-error: #EE443F;
     --color-text-link: #7AB4FF;
@@ -239,10 +239,11 @@ body {
         gap: var(--space-4);
         min-width: 0;
         font-size: var(--font-size-lg);
-        line-height: 1rem;
+        /* line-height: 1rem; */
         color: var(--color-text-secondary);
     }
     .page-group-title {
+        color: var(--color-text-primary);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -398,7 +399,7 @@ body {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: var(--space-12);
+        padding: var(--space-8);
         border: none;
         border-radius: var(--radius-4);
         background: none;
