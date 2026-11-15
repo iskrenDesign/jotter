@@ -1,8 +1,10 @@
 // Table handles: small grips next to the row, column and table you point at.
 // Clicking a grip opens a menu with the actions for that row, column or table.
 
-const GRIP_VERTICAL = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-grip-vertical preview-icon"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>';
-const GRIP_HORIZONTAL = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-grip-horizontal preview-icon"><circle cx="12" cy="9" r="1"/><circle cx="19" cy="9" r="1"/><circle cx="5" cy="9" r="1"/><circle cx="12" cy="15" r="1"/><circle cx="19" cy="15" r="1"/><circle cx="5" cy="15" r="1"/></svg>';
+const GRIP_VERTICAL = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>';
+const GRIP_HORIZONTAL = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="9" r="1"/><circle cx="12" cy="9" r="1"/><circle cx="19" cy="9" r="1"/><circle cx="5" cy="15" r="1"/><circle cx="12" cy="15" r="1"/><circle cx="19" cy="15" r="1"/></svg>';
+
+const MIN_COLUMN_WIDTH = 60; // the same as cellMinWidth in editor.js
 
 // ---------------------------------------------------------------- actions on the document
 
@@ -114,6 +116,24 @@ export function createTableActions(editor) {
         }).run();
     }
 
+    // Give every column a width (in pixels). A cell that spans several columns gets several widths.
+    function setColumnWidths(ctx, widths) {
+        chain().command(({ tr }) => {
+            ctx.table.forEach((row, rowOffset) => {
+                let column = 0;
+                row.forEach((cell, cellOffset) => {
+                    const span = cell.attrs.colspan || 1;
+                    const colwidth = widths.slice(column, column + span);
+                    column += span;
+                    if (colwidth.length === span) {
+                        tr.setNodeMarkup(ctx.tableStart + rowOffset + 1 + cellOffset, null, { ...cell.attrs, colwidth });
+                    }
+                });
+            });
+            return true;
+        }).run();
+    }
+
     return {
         context,
         isHeaderRow,
@@ -133,16 +153,17 @@ export function createTableActions(editor) {
             duplicateTable,
             clearRow: (ctx) => clear(rowCells(ctx)),
             clearColumn: (ctx) => clear(columnCells(ctx)),
+            fitToWidth: (ctx, widths) => setColumnWidths(ctx, widths),
         },
     };
 }
 
 // What each menu contains
-function menuItems(kind, ctx, actions) {
+function menuItems(kind, ctx, actions, fit) {
     const { run } = actions;
     if (kind === "row") {
         return [
-            ...(ctx.rowIndex === 0 ? [{ label: "Header row",on: actions.isHeaderRow(ctx.table), run: () => run.toggleHeaderRow() }] : []),
+            ...(ctx.rowIndex === 0 ? [{ label: "Header row", on: actions.isHeaderRow(ctx.table), run: () => run.toggleHeaderRow() }] : []),
             { label: "Insert above", run: () => run.addRowBefore() },
             { label: "Insert below", run: () => run.addRowAfter() },
             { label: "Duplicate", run: () => run.duplicateRow(ctx) },
@@ -161,6 +182,7 @@ function menuItems(kind, ctx, actions) {
         ];
     }
     return [
+        { label: "Fit to width", run: () => { const widths = fit(); if (widths) run.fitToWidth(ctx, widths); } },
         { label: "Header row", on: actions.isHeaderRow(ctx.table), run: () => run.toggleHeaderRow() },
         { label: "Header column", on: actions.isHeaderColumn(ctx.table), run: () => run.toggleHeaderColumn() },
         { label: "Duplicate table", run: () => run.duplicateTable(ctx) },
@@ -282,6 +304,28 @@ export function setupTableHandles(editor, placeMenu, actions = createTableAction
         handle.addEventListener("mousedown", (event) => event.preventDefault());
     });
 
+    // Column widths that fill the page width and keep the proportions the columns have now.
+    // The widths are in the table's own pixels, which is what the editor stores (this stays
+    // correct when the page is zoomed).
+    function fitWidths() {
+        if (!current) return null;
+        const table = current.closest("table");
+        const wrapper = table.closest(".tableWrapper");
+        let available = wrapper ? wrapper.clientWidth : 0;
+        if (!available) {
+            const style = getComputedStyle(root);
+            available = root.clientWidth - parseFloat(style.paddingLeft || 0) - parseFloat(style.paddingRight || 0);
+        }
+        const widths = [];
+        [...table.rows[0].cells].forEach((cell) => {
+            const span = cell.colSpan || 1;
+            for (let i = 0; i < span; i++) widths.push(cell.getBoundingClientRect().width / span);
+        });
+        const total = widths.reduce((sum, width) => sum + width, 0);
+        if (!available || !total) return null;
+        return widths.map((width) => Math.max(MIN_COLUMN_WIDTH, Math.floor((width / total) * available)));
+    }
+
     // Put the cursor in the cell, so the commands work on its row or column
     function selectCell(cell) {
         const target = cell.querySelector("p, h1, h2, h3") || cell;
@@ -296,7 +340,7 @@ export function setupTableHandles(editor, placeMenu, actions = createTableAction
         if (!ctx) return;
 
         menu.replaceChildren(
-            ...menuItems(kind, ctx, actions).map((item) => {
+            ...menuItems(kind, ctx, actions, fitWidths).map((item) => {
                 const button = document.createElement("button");
                 button.type = "button";
                 button.className = "menu-item" + (item.danger ? " menu-item-danger" : "");
