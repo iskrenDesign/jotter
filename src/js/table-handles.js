@@ -154,6 +154,12 @@ export function createTableActions(editor) {
             clearRow: (ctx) => clear(rowCells(ctx)),
             clearColumn: (ctx) => clear(columnCells(ctx)),
             fitToWidth: (ctx, widths) => setColumnWidths(ctx, widths),
+            // Insert a table that starts narrower than the page ("Fit to width" stretches it)
+            insertTable: ({ rows, cols, columnWidth }) => {
+                chain().insertTable({ rows, cols, withHeaderRow: true }).run();
+                const ctx = context();
+                if (ctx) setColumnWidths(ctx, Array(cols).fill(columnWidth));
+            },
         },
     };
 }
