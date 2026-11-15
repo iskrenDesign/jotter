@@ -1,7 +1,7 @@
 import { Editor, StarterKit, TextAlign, TaskList, TaskItem, TextStyle, FontSize, Color, Image, TableKit, PaginationPlus } from "./vendor/tiptap.js";
 import { placeMenu } from "./menus.js";
 import { VideoCard, videoProvider, getVideoInfo } from "./video-card.js";
-import { setupTableHandles } from "./table-handles.js";
+import { createTableActions, setupTableHandles } from "./table-handles.js";
 
 // In the app, open links in the user's browser; in the browser, a new tab
 const openLink = window.__TAURI__?.opener?.openUrl ?? ((url) => window.open(url, "_blank"));
@@ -41,7 +41,9 @@ export const editor = new Editor({
             footerRight: "{page}",
         }),
     ],
-    editable: false,
+    // Created editable on purpose: TipTap only adds table column resizing to an editor that starts
+    // editable. It is switched to read-only again right after it is created (see below).
+    editable: true,
     editorProps: {
         handlePaste: (view, event) => {
             const text = event.clipboardData.getData("text/plain").trim();
@@ -57,6 +59,8 @@ export const editor = new Editor({
         },
     },
 });
+
+editor.setEditable(false, false);
 
 // Toolbar
 const toolbar = document.querySelector(".toolbar");
@@ -150,12 +154,16 @@ const listButton = document.querySelector('[data-command="list"]');
 // Table: the button inserts a table. Rows, columns and the table itself are edited with the grips next to them
 const tableButton = document.querySelector('[data-command="table"]');
 
+// A new table is narrower than the page. "Fit to width" in the table menu stretches it.
+const DEFAULT_COLUMN_WIDTH = 160;
+const tableActions = createTableActions(editor);
+
 tableButton.addEventListener("click", () => {
     if (!editor.isEditable) return;
-    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+    tableActions.run.insertTable({ rows: 3, cols: 3, columnWidth: DEFAULT_COLUMN_WIDTH });
 });
 
-setupTableHandles(editor, placeMenu);
+setupTableHandles(editor, placeMenu, tableActions);
 
 // Text style menu
 const textStyleMenu = document.querySelector("#text-style-menu");
