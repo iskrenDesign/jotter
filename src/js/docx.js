@@ -48,7 +48,7 @@ function toHalfPoints(size) {
 }
  
 function alignOf(node) {
-    return ALIGN[node.style?.textAlign] || null;
+    return ALIGN[node.getAttribute?.("data-align")] || ALIGN[node.style?.textAlign] || null;
 }
  
 // ---------------------------------------------------------------- text and formatting
@@ -280,14 +280,22 @@ function convertNodes(nodes, ctx, opts) {
     let group = [];
     const flush = () => {
         if (group.some((node) => node.nodeType !== 3 || node.nodeValue.trim())) {
-            out.push(makeParagraph(inlineRuns(group, ctx, opts.format || {}), opts));
+            // A picture on its own line keeps its alignment (center unless set otherwise)
+            const picture = group.find((node) => node.tagName === "IMG");
+            const jc = picture ? alignOf(picture) || "center" : null;
+            out.push(makeParagraph(inlineRuns(group, ctx, opts.format || {}), opts, { jc }));
         }
         group = [];
     };
  
     for (const node of nodes) {
         if (node.nodeType === 1 && SKIP_TAGS.has(node.tagName)) continue;
-        if (node.nodeType === 3 || (node.nodeType === 1 && !BLOCK_TAGS.has(node.tagName))) {
+            if (node.nodeType === 1 && node.tagName === "IMG") {
+            // Each picture gets its own line, so it can have its own alignment
+            flush();
+            group.push(node);
+            flush();
+        } else if (node.nodeType === 3 || (node.nodeType === 1 && !BLOCK_TAGS.has(node.tagName))) {
             group.push(node);
         } else if (node.nodeType === 1) {
             flush();
