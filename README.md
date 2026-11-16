@@ -98,7 +98,7 @@ The source code is visible for information only. Please read the license before 
 
 ## License
 
-Jotter is free to use, but it is not open source. Copyright © 2026 [YOUR FULL NAME]. All rights reserved.
+Jotter is free to use, but it is not open source. Copyright © 2026 Iskren Ivalinov Ivanov. All rights reserved.
 
 You may install and use the official installer. Copying, modifying or distributing Jotter, or reusing any part of it, requires written permission. See [LICENSE](LICENSE) for the full terms.
 
