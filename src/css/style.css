@@ -1267,3 +1267,20 @@ body.is-dragging-group * {
 .tiptap table {
     display: table !important;
 }
+
+/* Tables on paper: no scrollbar, no grips, no selection tint */
+@media print {
+    .table-handle,
+    .table-handle-menu {
+        display: none !important;
+    }
+
+    .tiptap .tableWrapper {
+        overflow: visible;
+    }
+
+    .tiptap .selectedCell::after,
+    .tiptap .column-resize-handle {
+        display: none;
+    }
+}
