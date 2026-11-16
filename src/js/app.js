@@ -414,6 +414,25 @@ function updateGroupBox(group) {
     groupBox.indeterminate = ticked > 0 && ticked < boxes.length;
 }
 
+// "Select all" is ticked when every page is ticked, and half-ticked when only some are
+const selectAllBox = document.querySelector(".select-all-box");
+
+function updateSelectAll() {
+    const boxes = [...document.querySelectorAll(".page-group .page-item .select-box")];
+    const ticked = boxes.filter((box) => box.checked).length;
+    selectAllBox.checked = boxes.length > 0 && ticked === boxes.length;
+    selectAllBox.indeterminate = ticked > 0 && ticked < boxes.length;
+}
+
+// Ticking "Select all" ticks every folder and page; unticking it clears them all
+selectAllBox.addEventListener("change", () => {
+    document.querySelectorAll(".page-group").forEach((group) => {
+        pageBoxes(group).forEach((box) => (box.checked = selectAllBox.checked));
+        updateGroupBox(group);
+    });
+    updateExportButton();
+});
+
 function updateExportButton() {
     exportButton.hidden = !document.querySelector(".page-group .page-item .select-box:checked");
 }
@@ -425,6 +444,7 @@ sidebarPages.addEventListener("change", (event) => {
     if (box.closest(".page-group-header")) pageBoxes(group).forEach((pageBox) => (pageBox.checked = box.checked));
     updateGroupBox(group);
     updateExportButton();
+    updateSelectAll();
 });
 
 // item is a page (ticks that page) or a folder (ticks all of its pages)
@@ -438,6 +458,7 @@ function startExport(item) {
     else item.querySelector(".select-box").checked = true;
     updateGroupBox(group);
     updateExportButton();
+    updateSelectAll();
     app.classList.remove("sidebar-collapsed");
     app.classList.add("export-mode");
 }

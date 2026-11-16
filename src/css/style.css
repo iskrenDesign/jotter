@@ -913,6 +913,9 @@ hr {
 
 .tiptap .video-card {
     max-width: 30rem;
+    &.ProseMirror-selectednode img {
+        outline: 2px solid var(--color-border-brand);
+    }
     margin: var(--space-16);
     text-align: center;
     cursor: pointer;
@@ -1064,6 +1067,21 @@ body.is-dragging-group * {
     border-color: var(--color-surface-brand);
     background-color: var(--color-surface-brand);
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14'/%3E%3C/svg%3E");
+}
+
+.app .select-all {
+    display: none;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-12) var(--space-12) 0;
+    font-size: var(--font-size-lg);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    user-select: none;
+}
+
+.app.export-mode .select-all {
+    display: flex;
 }
 
 .app .export-bar {
@@ -1222,6 +1240,28 @@ body.is-dragging-group * {
     background-color: var(--color-surface-subtle);
     font-weight: 700;
     text-align: left;
+}
+
+/* Print: Chrome (and the app's WebView2) sometimes drops shared "collapsed" table borders
+   on paper, mostly next to shaded header cells and merged cells. When printing, every cell
+   draws only its own right and bottom border, and the table draws the top and left edge,
+   so no two borders overlap and none can go missing. */
+@media print {
+    .tiptap.rm-with-pagination table {
+        border-collapse: separate !important;
+        border-spacing: 0;
+        border-top: 1px solid var(--color-text-disabled);
+        border-left: 1px solid var(--color-text-disabled);
+    }
+    .tiptap td,
+    .tiptap th {
+        position: static;
+        border-width: 0 1px 1px 0;
+    }
+    .tiptap .column-resize-handle,
+    .tiptap .selectedCell::after {
+        display: none;
+    }
 }
 
 .tiptap .selectedCell::after {

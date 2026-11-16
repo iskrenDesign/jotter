@@ -42,6 +42,8 @@ export const blockAlign = {
     },
 };
 
+const ALIGN_MARGIN = { left: "0 auto 0 0", center: "0 auto", right: "0 0 0 auto" };
+
 // The video card block
 export const VideoCard = Node.create({
     name: "videoCard",
@@ -68,7 +70,6 @@ export const VideoCard = Node.create({
         }];
     },
 
-    const ALIGN_MARGIN = { left: "0 auto 0 0", center: "0 auto", right: "0 0 0 auto" };
     renderHTML({ node }) {
         const { url, thumbnail, title, align } = node.attrs;
         const content = [];
