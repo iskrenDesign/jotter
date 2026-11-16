@@ -11,12 +11,14 @@ A lightweight, local note-taking app for Windows. Your notes stay on your comput
 - **Folders and pages.** Organize notes into folders, and add as many pages as you need to each one.
 - **Pinned pages.** Pin the pages you use most. They stay in their folder and also appear in a Pinned section at the top.
 - **Drag and drop.** Reorder folders, and move pages from one folder to another by dragging them.
-- **Rich text editor.** Headings, bold, italic, underline, strikethrough, text color, alignment, bullet, numbered and task lists, links and images, powered by [TipTap](https://tiptap.dev).
+- **Rich text editor.** Headings, bold, italic, underline, strikethrough, text color, alignment, bullet, numbered and task lists, links, images, quotes and tables (with resizable columns), powered by [TipTap](https://tiptap.dev).
 - **Video cards.** Paste a YouTube or Vimeo link and get a card with the video title. It opens in your default browser.
 - **Export and import.**
   - Save pages or whole folders as a single `.jot` file, and import it into another Jotter installation. Nothing is lost: titles, dates, formatting, images and pinned pages all come along.
   - Export any page as a **PDF** or a **Word document** (`.docx`).
+- **Print.** Print any page straight from the toolbar. Tables fit the page.
 - **Search.** Filter pages by title as you type.
+- **Automatic updates.** Jotter tells you when a new version is ready and installs it for you.
 - **Light and dark theme.** Follows your system by default and can be switched at any time.
 - **Zoom.** Make the page bigger or smaller to suit your eyes.
 - **Autosave.** Your page is saved half a second after you stop typing.
@@ -64,7 +66,7 @@ Get the latest Windows installer from the [Releases page](https://github.com/isk
 
 ## Roadmap
 
-- [ ] Automatic updates
+- [x] Automatic updates
 - [ ] Feedback prompt
 - [ ] Fit-to-window zoom
 - [ ] Page titles as file names, folders as real folders, and images saved as separate files
