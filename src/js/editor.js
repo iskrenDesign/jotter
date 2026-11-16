@@ -29,10 +29,10 @@ export const editor = new Editor({
             pageGap: 24,
             pageGapBorderSize: 0,
             pageBreakBackground: "#FAFAFA",
-            marginTop: 24,
-            marginBottom: 24,
-            marginLeft: 24,
-            marginRight: 24,
+            marginTop: 64,
+            marginBottom: 64,
+            marginLeft: 64,
+            marginRight: 64,
             contentMarginTop: 0,
             contentMarginBottom: 0,
             headerLeft: "",
@@ -353,7 +353,7 @@ async function insertVideoCard(url, provider) {
 }
 
 // Page zoom
-const ZOOM_STEPS = [50, 67, 75, 90, 100, 110, 125, 150, 175, 200];
+const ZOOM_STEPS = [50, 60, 70, 80, 90, 100, 110, 120, 150, 175, 200];
 const pageElement = document.querySelector(".a4-page");
 const zoomValue = document.querySelector(".page-zoom-value");
 let zoom = Number(localStorage.getItem("jotter-zoom")) || 100;

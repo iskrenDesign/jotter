@@ -209,6 +209,7 @@ export function setupTableHandles(editor, placeMenu, actions = createTableAction
         button.hidden = true;
         button.innerHTML = icon;
         return button;
+        setupPrintFit(root);
     }
 
     const handles = {
@@ -394,4 +395,37 @@ export function setupTableHandles(editor, placeMenu, actions = createTableAction
     window.addEventListener("resize", schedulePlace);
     const page = document.querySelector(".a4-page");
     if (page && window.ResizeObserver) new ResizeObserver(schedulePlace).observe(page);
+}
+
+// On paper a table cannot scroll sideways. A table wider than the page is scaled down to fit
+// while printing, keeping its column proportions, and put back afterwards.
+function setupPrintFit(root) {
+    let saved = [];
+
+    window.addEventListener("beforeprint", () => {
+        root.querySelectorAll(".tableWrapper").forEach((wrapper) => {
+            const table = wrapper.querySelector("table");
+            const available = wrapper.clientWidth;
+            if (!table || !available || table.offsetWidth <= available + 1) return;
+
+            const scale = available / table.offsetWidth;
+            const cols = [...table.querySelectorAll("col")];
+            // Read every width first: changing one column moves the others
+            const widths = table.rows[0] ? [...table.rows[0].cells].map((cell) => cell.offsetWidth) : [];
+            saved.push({ table, style: table.getAttribute("style"), cols: cols.map((col) => [col, col.getAttribute("style")]) });
+            widths.forEach((width, index) => {
+                if (cols[index]) cols[index].style.width = `${Math.floor(width * scale)}px`;
+            });
+            table.style.width = `${available}px`;
+        });
+    });
+
+    window.addEventListener("afterprint", () => {
+        const put = (element, style) => (style === null ? element.removeAttribute("style") : element.setAttribute("style", style));
+        saved.forEach(({ table, style, cols }) => {
+            put(table, style);
+            cols.forEach(([col, colStyle]) => put(col, colStyle));
+        });
+        saved = [];
+    });
 }
