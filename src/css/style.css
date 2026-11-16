@@ -913,6 +913,9 @@ hr {
 
 .tiptap .video-card {
     max-width: 30rem;
+    &.ProseMirror-selectednode img {
+        outline: 2px solid var(--color-border-brand);
+    }
     margin: var(--space-16);
     text-align: center;
     cursor: pointer;
