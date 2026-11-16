@@ -23,9 +23,9 @@ Repository: https://github.com/iskrenDesign/jotter
 - **Design (Figma):** Desktop frame 1440 × 960, mobile frame 360 × 800.
   - Desktop: note list and editor side by side.
   - Mobile: note list first, editor opens full screen, toolbar at the bottom / above the keyboard. Tap targets at least 48 × 48.
-- **License:** MIT.
+- **License:** Free to use, not open source (all rights reserved). Versions 0.1.0 and 0.1.1 were MIT.
 - **Money:** "Buy Me a Coffee" button on GitHub (via `FUNDING.yml`).
-- **Future (free) features, maybe:** search, tags, dark mode, export/import.
+- **Future (free) features, maybe:** tags. (Search, dark mode and export/import are done.)
 
 ## Tools I use
 - **VS Code** (app), signed out of Copilot.
@@ -34,14 +34,19 @@ Repository: https://github.com/iskrenDesign/jotter
 
 ## Roadmap
 1. ✅ Install tools, create the GitHub repository
-2. ⬜ Clone the repo, test a first `index.html` with Live Server, commit and push
-3. ⬜ Figma: sketch the main screen (desktop + mobile)
-4. ⬜ Build the layout: note list + editor
-5. ⬜ Saving and loading notes
-6. ⬜ Formatting toolbar
-7. ⬜ Wrap in Tauri, save notes as files, build the installer
-8. ⬜ README, Buy Me a Coffee, first release on GitHub
+2. ✅ Clone the repo, test a first `index.html` with Live Server, commit and push
+3. ✅ Figma: sketch the main screen (desktop + mobile)
+4. ✅ Build the layout: note list + editor
+5. ✅ Saving and loading notes
+6. ✅ Formatting toolbar
+7. ✅ Wrap in Tauri, save notes as files, build the installer
+8. ✅ README and first release on GitHub (Buy Me a Coffee still to do)
 9. ⬜ Android version
 
 ## Where I am now
-(Update this line before starting each new chat.)
+Windows app at version 0.1.6 (Tauri, signed installer, automatic updates).
+Done: folders and pages, pinned pages, drag and drop, editor with tables, images,
+links, video cards, quotes and lists, export to .jot / PDF / Word, print, dark mode,
+zoom, search, notes saved as files in `Documents\Jotter`.
+Licence: free to use, not open source (versions 0.1.0 and 0.1.1 were MIT).
+Next: release 0.1.6, Buy Me a Coffee button, then Android.

@@ -12,8 +12,8 @@
     "url": "git+https://github.com/iskrenDesign/jotter.git"
   },
   "keywords": [],
-  "author": "",
-  "license": "MIT",
+  "author": "iskrenDesign",
+  "license": "UNLICENSED",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/iskrenDesign/jotter/issues"
