@@ -1,12 +1,43 @@
 import { Editor, StarterKit, TextAlign, TaskList, TaskItem, TextStyle, FontSize, Color, Image, TableKit, PaginationPlus } from "./vendor/tiptap.js";
 import { placeMenu } from "./menus.js";
-import { VideoCard, videoProvider, getVideoInfo } from "./video-card.js";
+import { VideoCard, videoProvider, getVideoInfo, blockAlign } from "./video-card.js";
 import { createTableActions, setupTableHandles } from "./table-handles.js";
 
 // In the app, open links in the user's browser; in the browser, a new tab
 const openLink = window.__TAURI__?.opener?.openUrl ?? ((url) => window.open(url, "_blank"));
 
 // Editor
+// Pictures you can resize by dragging their corners.
+// TipTap's resizable picture needs two small fixes:
+// 1. It does not redraw its size after Undo/Redo or when another page is opened,
+//    so the width and height are set again every time the picture changes.
+// 2. It does not know about the page zoom, so the mouse movement is divided by the zoom.
+const ResizableImage = Image.extend({
+    // Left, center or right on the page (set with the alignment button)
+    addAttributes() {
+        return { ...this.parent?.(), ...blockAlign };
+    },
+    addNodeView() {
+        const createView = this.parent?.();
+        if (!createView) return null;
+        return (props) => {
+            const view = createView(props);
+            const resize = view.handleResize.bind(view);
+            view.handleResize = (dx, dy) => {
+                const zoom = view.element.currentCSSZoom || 1;
+                resize(dx / zoom, dy / zoom);
+            };
+            const update = view.update.bind(view);
+            view.update = (node, ...rest) => {
+                if (!update(node, ...rest)) return false;
+                view.element.style.width = node.attrs.width ? `${node.attrs.width}px` : "";
+                view.element.style.height = node.attrs.height ? `${node.attrs.height}px` : "";
+                return true;
+            };
+            return view;
+        };
+    },
+});
 export const editor = new Editor({
     element: document.querySelector(".page-editor"),
     extensions: [
@@ -20,7 +51,17 @@ export const editor = new Editor({
         TextStyle,
         FontSize,
         Color,
-        Image.configure({ allowBase64: true }),
+            ResizableImage.configure({
+            allowBase64: true,
+            // Drag the corners of a picture to make it bigger or smaller
+            resize: {
+                enabled: true,
+                directions: ["top-left", "top-right", "bottom-left", "bottom-right"],
+                minWidth: 48,
+                minHeight: 48,
+                alwaysPreserveAspectRatio: true,
+            },
+        }),
         TableKit.configure({ table: { resizable: true, handleWidth: 6, cellMinWidth: 60 } }),
         VideoCard,
         PaginationPlus.configure({
@@ -52,10 +93,15 @@ export const editor = new Editor({
             insertVideoCard(text, provider);
             return true;
         },
-        handleClickOn: (view, pos, node) => {
+        handleClickOn: (view, pos, node, nodePos) => {
             if (node.type.name !== "videoCard") return false;
+            // While editing, the first click selects the card (so it can be aligned), the second opens it
+            const { selection } = view.state;
+            const selected = selection.node === node && selection.from === nodePos;
+            if (editor.isEditable && !selected) return false;
                 openLink(node.attrs.url);
             return true;
+            
         },
     },
 });
@@ -105,10 +151,28 @@ toolbar.addEventListener("click", (event) => {
 });
 
 // Dropdowns on the toolbar: text alignment and lists
+// A selected picture or video card is moved as a whole block; anything else aligns its text
+function selectedBlock() {
+    const { node } = editor.state.selection;
+    return node && ["image", "videoCard"].includes(node.type.name) ? node : null;
+}
+
+function align(value) {
+    const block = selectedBlock();
+    if (block) return editor.chain().focus().updateAttributes(block.type.name, { align: value }).run();
+    return editor.chain().focus().setTextAlign(value).run();
+}
+
+function isAligned(value) {
+    const block = selectedBlock();
+    if (block) return block.attrs.align === value;
+    return editor.isActive({ textAlign: value });
+}
+
 const alignments = {
-    left:   { run: () => editor.chain().focus().setTextAlign("left").run(),   active: () => editor.isActive({ textAlign: "left" }) },
-    center: { run: () => editor.chain().focus().setTextAlign("center").run(), active: () => editor.isActive({ textAlign: "center" }) },
-    right:  { run: () => editor.chain().focus().setTextAlign("right").run(),  active: () => editor.isActive({ textAlign: "right" }) },
+    left:   { run: () => align("left"),   active: () => isAligned("left") },
+    center: { run: () => align("center"), active: () => isAligned("center") },
+    right:  { run: () => align("right"),  active: () => isAligned("right") },
 };
 
 const lists = {

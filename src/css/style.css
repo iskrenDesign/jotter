@@ -495,6 +495,64 @@ hr {
     }
 }
 
+/* Resizable pictures: TipTap wraps each picture in a box with four corner handles */
+.tiptap [data-resize-container] {
+    justify-content: center;
+    margin: var(--space-16) 0;
+    img {
+        margin: 0;
+        height: auto !important; /* keep the shape when the page is narrower than the picture */
+    }
+    &.ProseMirror-selectednode img {
+        outline: 2px solid var(--color-border-brand);
+    }
+}
+/* Picture alignment (set with the alignment button while the picture is selected) */
+.tiptap [data-resize-container]:has(img[data-align="left"]) {
+    justify-content: flex-start;
+}
+.tiptap [data-resize-container]:has(img[data-align="right"]) {
+    justify-content: flex-end;
+}
+.tiptap [data-resize-wrapper] {
+    max-width: 100%;
+}
+.tiptap [data-resize-handle] {
+    width: 12px;
+    height: 12px;
+    margin: -6px;
+    background: var(--color-surface-brand);
+    border: 2px solid #FFFFFF;
+    border-radius: 50%;
+    opacity: 0;
+    z-index: 1;
+    &[data-resize-handle="top-left"],
+    &[data-resize-handle="bottom-right"] {
+        cursor: nwse-resize;
+    }
+    &[data-resize-handle="top-right"],
+    &[data-resize-handle="bottom-left"] {
+        cursor: nesw-resize;
+    }
+}
+/* Show the handles when the picture is selected or hovered, only while the page can be edited */
+.tiptap[contenteditable="true"] [data-resize-container]:is(:hover, .ProseMirror-selectednode, [data-resize-state="true"]) [data-resize-handle] {
+    opacity: 1;
+}
+.tiptap[contenteditable="false"] [data-resize-handle] {
+    display: none;
+}
+
+/* Never print the resize handles or the selection outline */
+@media print {
+    .tiptap [data-resize-handle] {
+        display: none !important;
+    }
+    .tiptap [data-resize-container] img {
+        outline: none !important;
+    }
+}
+
 /* Dropdown menus (outside .app, because popovers sit at the end of <body>) */
 .dropdown-menu {
     width: 20.4375rem;

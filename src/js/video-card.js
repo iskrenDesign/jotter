@@ -32,6 +32,16 @@ export async function getVideoInfo(url, provider) {
     }
 }
 
+// Left, center or right on the page. Used by video cards and pictures.
+// Center is the default, so notes made before this change look the same.
+export const blockAlign = {
+    align: {
+        default: "center",
+        parseHTML: (element) => element.getAttribute("data-align") || "center",
+        renderHTML: (attributes) => (attributes.align === "center" ? {} : { "data-align": attributes.align }),
+    },
+};
+
 // The video card block
 export const VideoCard = Node.create({
     name: "videoCard",
@@ -43,6 +53,7 @@ export const VideoCard = Node.create({
             url: { default: null },
             thumbnail: { default: null },
             title: { default: "" },
+            ...blockAlign,
         };
     },
 
@@ -57,15 +68,9 @@ export const VideoCard = Node.create({
         }];
     },
 
-    // renderHTML({ node }) {
-    //     const { url, thumbnail, title } = node.attrs;
-    //     const content = [];
-    //     if (thumbnail) content.push(["img", { src: thumbnail, alt: "" }]);
-    //     content.push(["figcaption", {}, title]);
-    //     return ["figure", { "data-video-card": "", "data-url": url, class: "video-card" }, ...content];
-    // },
+    const ALIGN_MARGIN = { left: "0 auto 0 0", center: "0 auto", right: "0 0 0 auto" };
     renderHTML({ node }) {
-        const { url, thumbnail, title } = node.attrs;
+        const { url, thumbnail, title, align } = node.attrs;
         const content = [];
         
         if (thumbnail) content.push(["img", { src: thumbnail, alt: "" }]);
@@ -77,9 +82,9 @@ export const VideoCard = Node.create({
             { 
             "data-video-card": "", 
             "data-url": url, 
+            "data-align": align === "center" ? null : align,
             class: "video-card",
-            style: "display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto; text-align: center;" 
-            }, 
+            style: `display: flex; flex-direction: column; align-items: center; justify-content: center; margin: ${ALIGN_MARGIN[align] || "0 auto"}; text-align: center;`            }, 
             ...content
         ];
     },
