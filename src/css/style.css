@@ -1382,3 +1382,176 @@ body.is-dragging-group * {
         display: none;
     }
 }
+/* Save status in the page header */
+.app .save-status {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    font-size: var(--font-size-md);
+    line-height: 1rem;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+    &[data-status="error"] {
+        color: var(--color-text-error);
+        font-weight: 600;
+    }
+}
+.app .save-status-retry {
+    padding: var(--space-4) var(--space-8);
+    border: 1px solid currentColor;
+    border-radius: var(--radius-4);
+    background: none;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    &:hover {
+        background-color: var(--color-surface-hover);
+    }
+}
+
+/* Windows high contrast (Settings > Accessibility > Contrast themes).
+   Windows replaces most colours with its own, removes shadows and hides
+   anything shown only by a background colour. These rules bring those
+   things back using the Windows colours (Canvas, CanvasText, Highlight...). */
+@media (forced-colors: active) {
+    /* Shadows are removed, so menus, dialogs and the floating sidebar get a border */
+    .dropdown-menu,
+    .confirm-dialog,
+    .app .drag-ghost,
+    .app.no-pages .page-group:first-of-type .add-page-button::after {
+        border: 1px solid CanvasText;
+    }
+    @media (max-width: 82rem) {
+        .app .sidebar {
+            border-right: 1px solid CanvasText;
+        }
+    }
+    .dialog-button {
+        border: 1px solid ButtonText;
+    }
+
+    /* Keyboard focus: always a clear 2px ring */
+    :focus-visible {
+        outline: 2px solid Highlight !important;
+        outline-offset: 1px;
+    }
+    .app .search-field:focus-within {
+        border-color: Highlight;
+    }
+
+    /* Hover: an outline, because the hover background is removed */
+    .app .icon-button:hover,
+    .app .theme-button:hover,
+    .app .toolbar-button:hover,
+    .app .footer-menu-button:hover,
+    .app .page-item:hover,
+    .menu-item:hover,
+    .table-handle:hover {
+        outline: 1px solid Highlight;
+        outline-offset: -1px;
+    }
+
+    /* Pressed buttons and the open page: Windows highlight colours */
+    .app .theme-button[aria-pressed="true"],
+    .app .toolbar-button[aria-pressed="true"],
+    .app .footer-menu-button.is-open,
+    .app .page-item[aria-current="page"] {
+        forced-color-adjust: none;
+        background-color: Highlight;
+        color: HighlightText;
+    }
+    .app .theme-button[aria-pressed="true"] *,
+    .app .toolbar-button[aria-pressed="true"] *,
+    .app .footer-menu-button.is-open *,
+    .app .page-item[aria-current="page"] * {
+        color: inherit;
+    }
+
+    /* Disabled items */
+    .app .toolbar-button:disabled,
+    .menu-item:disabled {
+        color: GrayText;
+        opacity: 1;
+    }
+
+    /* Checkboxes (task lists and export selection): let Windows draw them */
+    .tiptap ul[data-type="taskList"] input[type="checkbox"],
+    .app .select-box {
+        appearance: auto;
+        background-image: none !important;
+    }
+
+    /* Icons drawn with a mask (Jot, PDF) would vanish, so paint them in the text colour */
+    .icon-jot,
+    .icon-pdf {
+        forced-color-adjust: none;
+        background-color: CanvasText;
+    }
+
+    /* The text colour swatch shows a real colour, so keep it */
+    .app .toolbar-color-swatch {
+        forced-color-adjust: none;
+        border: 1px solid CanvasText;
+    }
+
+    /* On/off switch in the table menu */
+    .table-switch {
+        forced-color-adjust: none;
+        background-color: Canvas;
+        border: 1px solid CanvasText;
+        &::after {
+            top: 1px;
+            left: 1px;
+            background-color: CanvasText;
+        }
+        &[data-on="true"] {
+            background-color: Highlight;
+            border-color: Highlight;
+            &::after {
+                background-color: HighlightText;
+            }
+        }
+    }
+
+    /* Drag and drop markers */
+    .drop-line {
+        forced-color-adjust: none;
+        background-color: Highlight;
+    }
+    .drop-box {
+        border: 2px solid Highlight;
+    }
+
+    /* Pictures and tables in the editor */
+    .tiptap img.ProseMirror-selectednode,
+    .tiptap [data-resize-container].ProseMirror-selectednode img {
+        outline: 2px solid Highlight;
+    }
+    .tiptap [data-resize-handle] {
+        forced-color-adjust: none;
+        background: Highlight;
+        border-color: Canvas;
+    }
+    .tiptap .column-resize-handle {
+        forced-color-adjust: none;
+        background-color: Highlight;
+    }
+    .tiptap .selectedCell::after {
+        background: none;
+        outline: 2px solid Highlight;
+        outline-offset: -2px;
+    }
+
+    /* Update progress bar */
+    .update-progress {
+        forced-color-adjust: none;
+        border: 1px solid CanvasText;
+        background-color: Canvas;
+    }
+    .update-progress::-webkit-progress-bar {
+        background-color: Canvas;
+    }
+    .update-progress::-webkit-progress-value {
+        background-color: Highlight;
+    }
+}

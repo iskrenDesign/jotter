@@ -1,11 +1,11 @@
 import { editor } from "./editor.js";
 import { placeMenu } from "./menus.js";
 import { confirmDialog } from "./dialog.js";
-import { loadIndex, saveIndex, loadPage, savePage, deletePage } from "./storage.js";
+import { loadIndex, saveIndex, loadPage, savePage, deletePage, ConflictError, onSaveStatus, retryFailedSaves, flushSaves } from "./storage.js";
 import { saveJotFile, openJotFile, parseJotFile } from "./jot.js";
 import { buildDocx, saveDocxFile } from "./docx.js";
 import { checkForUpdates } from "./updater.js";
-
+ 
 // Elements
 const app = document.querySelector(".app");
 const sidebarPages = document.querySelector(".sidebar-pages");
@@ -19,35 +19,37 @@ const moveMenu = document.querySelector("#move-menu");
 const pageTitle = document.querySelector(".page-title");
 const headerPageMenu = document.querySelector(".header-page-menu");
 const searchInput = document.querySelector(".search-input");
-
+ 
 // State
 let activeGroup = null;  // the group whose menu is open
 let activePage = null;   // the page whose menu is open
 let selectedPage = null; // the page shown in the editor
 let renameInHeader = false; // Rename page edits the title in the header, not in the sidebar
 let hoveredItem = null;  // the page or group header under the mouse
-
+const saveTimers = {};   // page id -> timer that saves half a second after typing stops
+const typedHtml = {};    // page id -> text typed but not handed to storage yet
+ 
 // Sidebar collapse
 const narrowScreen = matchMedia("(max-width: 82rem)");
-
+ 
 document.querySelectorAll(".sidebar-toggle").forEach((button) => {
     button.addEventListener("click", () => {
         app.classList.toggle("sidebar-collapsed");
     });
 });
-
+ 
 function fitSidebar() {
     app.classList.toggle("sidebar-collapsed", narrowScreen.matches);
 }
-
+ 
 narrowScreen.addEventListener("change", fitSidebar);
 fitSidebar();
-
+ 
 // Theme
 const themeButtons = document.querySelectorAll(".theme-button");
 const systemDark = matchMedia("(prefers-color-scheme: dark)");
 let currentTheme = document.documentElement.dataset.theme;
-
+ 
 function applyTheme(theme) {
     currentTheme = theme;
     document.documentElement.dataset.theme = theme;
@@ -55,34 +57,34 @@ function applyTheme(theme) {
         button.setAttribute("aria-pressed", button.dataset.themeChoice === theme);
     });
 }
-
+ 
 themeButtons.forEach((button) => {
     button.addEventListener("click", () => {
         localStorage.setItem("jotter-theme", button.dataset.themeChoice);
         applyTheme(button.dataset.themeChoice);
     });
 });
-
+ 
 systemDark.addEventListener("change", () => {
     if (!localStorage.getItem("jotter-theme")) applyTheme(systemDark.matches ? "dark" : "light");
 });
-
+ 
 applyTheme(document.documentElement.dataset.theme);
-
+ 
 // Always print in the light theme
 window.addEventListener("beforeprint", () => {
     document.documentElement.dataset.theme = "light";
 });
-
+ 
 window.addEventListener("afterprint", () => {
     document.documentElement.dataset.theme = currentTheme;
 });
-
+ 
 // Create pages and groups
 function formatToday() {
     return new Date().toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
-
+ 
 function createPage(pageList, title = "New page", date = formatToday(), id = crypto.randomUUID()) {
     const newPage = pageTemplate.content.cloneNode(true);
     const page = newPage.querySelector(".page-item");
@@ -92,7 +94,7 @@ function createPage(pageList, title = "New page", date = formatToday(), id = cry
     pageList.append(newPage);
     return page;
 }
-
+ 
 function createGroup(name = "New folder") {
     const newGroup = groupTemplate.content.cloneNode(true);
     const group = newGroup.querySelector(".page-group");
@@ -100,11 +102,14 @@ function createGroup(name = "New folder") {
     sidebarPages.append(newGroup);
     return group;
 }
-
+ 
 function removePageContent(page) {
+    clearTimeout(saveTimers[page.dataset.id]);
+    delete saveTimers[page.dataset.id];
+    delete typedHtml[page.dataset.id];
     deletePage(page.dataset.id);
 }
-
+ 
 // Select page
 async function selectPage(page) {
     document.querySelectorAll(".page-item[aria-current]").forEach((item) => item.removeAttribute("aria-current"));
@@ -112,13 +117,14 @@ async function selectPage(page) {
     document.querySelectorAll(`.page-item[data-id="${page.dataset.id}"]`).forEach((item) => item.setAttribute("aria-current", "page"));
     pageTitle.textContent = page.querySelector(".page-item-title").textContent;
     headerPageMenu.hidden = false;
+    flushTypingSaves();
     const content = await loadPage(page.dataset.id);
     if (selectedPage !== page) return;
     editor.commands.setContent(content, { emitUpdate: false });
     editor.setEditable(true);
     localStorage.setItem("jotter-last-page", page.dataset.id);
 }
-
+ 
 function clearSelection() {
     selectedPage = null;
     pageTitle.textContent = "";
@@ -126,13 +132,13 @@ function clearSelection() {
     editor.commands.clearContent();
     editor.setEditable(false);
 }
-
+ 
 // Pinned pages: a copy of the page is shown in the Pinned section at the top
 function originalOf(item) {
     if (!item || !item.closest(".pinned-list")) return item;
     return document.querySelector(`.page-group .page-item[data-id="${item.dataset.id}"]`);
 }
-
+ 
 function renderPinned() {
     const pinnedList = document.querySelector(".pinned-list");
     const pinned = [...document.querySelectorAll(".page-group .page-item[data-pinned-at]")]
@@ -148,14 +154,14 @@ function renderPinned() {
         pinnedList.append(copy);
     });
 }
-
+ 
 function togglePin(page) {
     if (!page) return;
     if (page.dataset.pinnedAt) delete page.dataset.pinnedAt;
     else page.dataset.pinnedAt = Date.now();
     renderPinned();
 }
-
+ 
 // Page menu
 function preparePageMenu(page, fromHeader = false) {
     activePage = page;
@@ -164,13 +170,13 @@ function preparePageMenu(page, fromHeader = false) {
         page.dataset.pinnedAt ? "Unpin page" : "Pin page";
     pageMenu.querySelector(".menu-item-move").hidden = document.querySelectorAll(".page-group").length < 2;
 }
-
+ 
 headerPageMenu.addEventListener("click", () => {
     const rect = headerPageMenu.getBoundingClientRect();
     placeMenu(pageMenu, rect.bottom + 4, rect.right, "end");
     preparePageMenu(selectedPage, true);
 });
-
+ 
 // New page at the top of a group
 function addPage(group) {
     const pageList = group.querySelector(".page-list");
@@ -178,7 +184,7 @@ function addPage(group) {
     pageList.prepend(page);
     selectPage(page);
 }
-
+ 
 // Sidebar clicks: + new page, chevron, group ⋮, page ⋮, select page
 document.addEventListener("click", (event) => {
     // Export mode: clicking a page or folder ticks it instead of opening it
@@ -195,7 +201,7 @@ document.addEventListener("click", (event) => {
             addPage(addPageButton.closest(".page-group"));
         return;
     }
-
+ 
     const toggle = event.target.closest(".page-group-toggle");
     if (toggle) {
         const isExpanded = toggle.getAttribute("aria-expanded") === "true";
@@ -203,7 +209,7 @@ document.addEventListener("click", (event) => {
         toggle.closest(".page-group").classList.toggle("page-group-collapsed");
         return;
     }
-
+ 
     const groupMenuButton = event.target.closest(".group-menu-button");
     if (groupMenuButton) {
         const rect = groupMenuButton.getBoundingClientRect();
@@ -211,7 +217,7 @@ document.addEventListener("click", (event) => {
         activeGroup = groupMenuButton.closest(".page-group");
         return;
     }
-
+ 
     const pageMenuButton = event.target.closest(".page-item-menu");
     if (pageMenuButton) {
         const rect = pageMenuButton.getBoundingClientRect();
@@ -219,57 +225,57 @@ document.addEventListener("click", (event) => {
         preparePageMenu(originalOf(pageMenuButton.closest(".page-item")));
         return;
     }
-
+ 
     const unpinButton = event.target.closest(".unpin-button");
     if (unpinButton) {
         togglePin(originalOf(unpinButton.closest(".page-item")));
         return;
     }
-
+ 
     const page = event.target.closest(".page-item");
     if (page) {
         selectPage(originalOf(page));
         if (narrowScreen.matches) app.classList.add("sidebar-collapsed");
     }
 });
-
+ 
 // Rename
 function startRename(title) {
     title.contentEditable = "true";
     title.focus();
     document.getSelection().selectAllChildren(title);
 }
-
+ 
 const pinPageButton = pageMenu.querySelector('[data-action="pin-page"]');
-
+ 
 pinPageButton.addEventListener("click", () => {
     pageMenu.hidePopover();
     togglePin(activePage);
 });
-
+ 
 const renamePageButton = pageMenu.querySelector('[data-action="rename-page"]');
-
+ 
 renamePageButton.addEventListener("click", () => {
     pageMenu.hidePopover();
-
+ 
     // Opened from the header (or with Ctrl+R): rename the title in the header
     if (renameInHeader && activePage === selectedPage) {
         startRename(pageTitle);
         return;
     }
-
+ 
     const pageGroup = activePage.closest(".page-group");
     if (pageGroup.classList.contains("page-group-collapsed")) pageGroup.querySelector(".page-group-toggle").click();
     startRename(activePage.querySelector(".page-item-title"));
 });
-
+ 
 const renameGroupButton = groupMenu.querySelector('[data-action="rename-group"]');
-
+ 
 renameGroupButton.addEventListener("click", () => {
     groupMenu.hidePopover();
     startRename(activeGroup.querySelector(".page-group-title"));
 });
-
+ 
 // Finish renaming: Enter or click elsewhere
 document.addEventListener("keydown", (event) => {
     if (event.key === "Enter" && event.target.matches(".page-item-title, .page-group-title, .page-title")) {
@@ -282,7 +288,7 @@ document.addEventListener("keydown", (event) => {
         event.target.blur();
     }
 });
-
+ 
 document.addEventListener("focusout", (event) => {
     if (event.target.matches(".page-item-title, .page-group-title")) {
         event.target.contentEditable = "false";
@@ -291,7 +297,7 @@ document.addEventListener("focusout", (event) => {
         renderPinned();
     }
 });
-
+ 
 // Finish renaming in the header: the new name goes to the sidebar too
 document.addEventListener("focusout", (event) => {
     if (!event.target.matches(".page-title")) return;
@@ -304,25 +310,25 @@ document.addEventListener("focusout", (event) => {
     event.target.textContent = sidebarTitle.textContent;
     renderPinned();
 });
-
+ 
 // Add new folder/group
 const addGroupButton = groupMenu.querySelector('[data-action="add-group"]');
-
+ 
 addGroupButton.addEventListener("click", () => {
     groupMenu.hidePopover();
     const group = createGroup();
     startRename(group.querySelector(".page-group-title"));
 });
-
+ 
 // Delete folder/group
 const deleteGroupButton = groupMenu.querySelector('[data-action="delete-group"]');
-
+ 
 deleteGroupButton.addEventListener("click", async () => {
     if (document.querySelectorAll(".page-group").length === 1) return;
     groupMenu.hidePopover();
     const group = activeGroup;
     const pages = group.querySelectorAll(".page-item");
-
+ 
     if (pages.length > 0) {
         const confirmed = await confirmDialog({
             title: "Delete this folder?",
@@ -332,20 +338,20 @@ deleteGroupButton.addEventListener("click", async () => {
         });
         if (!confirmed) return;
     }
-
+ 
     if (group.contains(selectedPage)) clearSelection();
     pages.forEach(removePageContent);
     group.remove();
     renderPinned();
 });
-
+ 
 // Delete page
 const deletePageButton = pageMenu.querySelector('[data-action="delete-page"]');
-
+ 
 deletePageButton.addEventListener("click", async () => {
     pageMenu.hidePopover();
     const page = activePage;
-
+ 
     const confirmed = await confirmDialog({
         title: "Delete this page?",
         message: "This will permanently delete the page and all of its contents. This action cannot be undone!",
@@ -353,16 +359,16 @@ deletePageButton.addEventListener("click", async () => {
         confirmLabel: "Delete page",
     });
     if (!confirmed) return;
-
+ 
     if (page === selectedPage) clearSelection();
     removePageContent(page);
     page.remove();
     renderPinned();
 });
-
+ 
 // Move page to group
 const movePageButton = pageMenu.querySelector('[data-action="move-page"]');
-
+ 
 movePageButton.addEventListener("click", () => {
     const itemRect = movePageButton.getBoundingClientRect();
     const menuRect = pageMenu.getBoundingClientRect();
@@ -371,10 +377,10 @@ movePageButton.addEventListener("click", () => {
     } else {
         placeMenu(moveMenu, itemRect.top, menuRect.left - 4, "end");
     }
-
+ 
     moveMenu.replaceChildren();
     const currentGroup = activePage.closest(".page-group");
-
+ 
     document.querySelectorAll(".page-group").forEach((group) => {
         if (group === currentGroup) return;
         const item = moveItemTemplate.content.cloneNode(true);
@@ -386,7 +392,7 @@ movePageButton.addEventListener("click", () => {
         moveMenu.append(item);
     });
 });
-
+ 
 // Search
 searchInput.addEventListener("input", () => {
     const keyword = searchInput.value.trim().toLowerCase();
@@ -395,16 +401,16 @@ searchInput.addEventListener("input", () => {
         page.hidden = !title.includes(keyword);
     });
 });
-
+ 
 // Export as .jot: tick groups and pages, then save them as one file
 const exportMenu = document.querySelector("#export-menu");
 const exportButton = document.querySelector(".export-button");
 const exportCancelButton = document.querySelector(".export-cancel");
-
+ 
 function pageBoxes(group) {
     return [...group.querySelectorAll(".page-item .select-box")];
 }
-
+ 
 // A folder box is ticked when all its pages are ticked, and half-ticked when only some are
 function updateGroupBox(group) {
     const boxes = pageBoxes(group);
@@ -413,17 +419,17 @@ function updateGroupBox(group) {
     groupBox.checked = boxes.length > 0 && ticked === boxes.length;
     groupBox.indeterminate = ticked > 0 && ticked < boxes.length;
 }
-
+ 
 // "Select all" is ticked when every page is ticked, and half-ticked when only some are
 const selectAllBox = document.querySelector(".select-all-box");
-
+ 
 function updateSelectAll() {
     const boxes = [...document.querySelectorAll(".page-group .page-item .select-box")];
     const ticked = boxes.filter((box) => box.checked).length;
     selectAllBox.checked = boxes.length > 0 && ticked === boxes.length;
     selectAllBox.indeterminate = ticked > 0 && ticked < boxes.length;
 }
-
+ 
 // Ticking "Select all" ticks every folder and page; unticking it clears them all
 selectAllBox.addEventListener("change", () => {
     document.querySelectorAll(".page-group").forEach((group) => {
@@ -432,11 +438,11 @@ selectAllBox.addEventListener("change", () => {
     });
     updateExportButton();
 });
-
+ 
 function updateExportButton() {
     exportButton.hidden = !document.querySelector(".page-group .page-item .select-box:checked");
 }
-
+ 
 sidebarPages.addEventListener("change", (event) => {
     const box = event.target.closest(".select-box");
     if (!box) return;
@@ -446,7 +452,7 @@ sidebarPages.addEventListener("change", (event) => {
     updateExportButton();
     updateSelectAll();
 });
-
+ 
 // item is a page (ticks that page) or a folder (ticks all of its pages)
 function startExport(item) {
     document.querySelectorAll(".select-box").forEach((box) => {
@@ -462,11 +468,11 @@ function startExport(item) {
     app.classList.remove("sidebar-collapsed");
     app.classList.add("export-mode");
 }
-
+ 
 function cancelExport() {
     app.classList.remove("export-mode");
 }
-
+ 
 async function exportSelection() {
     const groups = [];
     for (const group of document.querySelectorAll(".page-group")) {
@@ -490,10 +496,10 @@ async function exportSelection() {
         }
     }
     if (groups.length === 0) return;
-
+ 
     let fileName = "Jotter export";
     if (groups.length === 1) fileName = groups[0].pages.length === 1 ? groups[0].pages[0].title : groups[0].name;
-
+ 
     try {
         if (await saveJotFile(groups, fileName)) cancelExport();
     } catch (error) {
@@ -501,23 +507,23 @@ async function exportSelection() {
         alert(`The file could not be saved.\n\n${error}`);
     }
 }
-
+ 
 // Export as PDF: show the page in the editor, then open the print window ("Save as PDF" is there)
 async function exportPdf(page) {
     // Reloading the open page could drop changes that are not saved yet, so only switch when needed
     if (page !== selectedPage) await selectPage(page);
-
+ 
     // Wait until the page and its images are drawn
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     await Promise.all([...document.querySelectorAll(".tiptap img")].map((image) => image.decode().catch(() => {})));
-
+ 
     // The print window suggests the page title as the file name
     const previousTitle = document.title;
     document.title = page.querySelector(".page-item-title").textContent.trim() || "Jotter";
     window.addEventListener("afterprint", () => { document.title = previousTitle; }, { once: true });
     window.print();
 }
-
+ 
 // Export as Word: build a .docx file from the page and save it
 async function exportWord(page) {
     const title = page.querySelector(".page-item-title").textContent.trim() || "Untitled";
@@ -530,9 +536,9 @@ async function exportWord(page) {
         alert(`The Word file could not be created.\n\n${error}`);
     }
 }
-
+ 
 const exportPageButton = pageMenu.querySelector('[data-action="export-page"]');
-
+ 
 exportPageButton.addEventListener("click", () => {
     const itemRect = exportPageButton.getBoundingClientRect();
     const menuRect = pageMenu.getBoundingClientRect();
@@ -542,7 +548,7 @@ exportPageButton.addEventListener("click", () => {
         placeMenu(exportMenu, itemRect.top, menuRect.left - 4, "end");
     }
 });
-
+ 
 exportMenu.addEventListener("click", (event) => {
     const item = event.target.closest("[data-export]");
     if (!item || item.disabled) return;
@@ -551,26 +557,26 @@ exportMenu.addEventListener("click", (event) => {
     if (item.dataset.export === "pdf") exportPdf(activePage);
     if (item.dataset.export === "word") exportWord(activePage);
 });
-
+ 
 const exportGroupButton = groupMenu.querySelector('[data-action="export-group"]');
-
+ 
 exportGroupButton.addEventListener("click", () => {
     groupMenu.hidePopover();
     startExport(activeGroup);
 });
-
+ 
 exportButton.addEventListener("click", exportSelection);
 exportCancelButton.addEventListener("click", cancelExport);
-
+ 
 document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") cancelExport();
 });
-
+ 
 // Import a .jot file: its folders are added at the top, right below Pinned
 const importMenu = document.querySelector("#import-menu");
 const importMenuButton = document.querySelector(".footer-menu-button");
 const importJotButton = importMenu.querySelector('[data-action="import-jot"]');
-
+ 
 // The menu opens upwards, with its right edge lined up with the button
 importMenuButton.addEventListener("click", () => {
     const rect = importMenuButton.getBoundingClientRect();
@@ -579,11 +585,11 @@ importMenuButton.addEventListener("click", () => {
     importMenu.style.bottom = window.innerHeight - rect.top + 4 + "px";
     importMenu.style.right = window.innerWidth - rect.right + "px";
 });
-
+ 
 importMenu.addEventListener("toggle", (event) => {
     importMenuButton.classList.toggle("is-open", event.newState === "open");
 });
-
+ 
 async function importJot() {
     let groups;
     try {
@@ -595,7 +601,7 @@ async function importJot() {
         alert(`The file could not be imported.\n\n${error.message || error}`);
         return;
     }
-
+ 
     // Every folder and page gets a new id, so nothing can clash with what you already have
     let anchor = document.querySelector(".pinned-section");
     let firstPage = null;
@@ -612,36 +618,36 @@ async function importJot() {
             firstPage ??= page;
         }
     }
-
+ 
     renderPinned();
     selectPage(firstPage);
     firstPage.scrollIntoView({ block: "nearest" });
 }
-
+ 
 importJotButton.addEventListener("click", () => {
     importMenu.hidePopover();
     importJot();
 });
-
+ 
 const checkUpdatesButton = importMenu.querySelector('[data-action="check-updates"]');
-
+ 
 checkUpdatesButton.addEventListener("click", () => {
     importMenu.hidePopover();
     checkForUpdates({ manual: true });
 });
-
+ 
 // Keyboard shortcuts
 document.addEventListener("mouseover", (event) => {
     hoveredItem = event.target.closest(".page-item, .page-group-header, .page-title");
 });
-
+ 
 document.addEventListener("keydown", (event) => {
     if (!event.ctrlKey) return;
     const key = event.key.toLowerCase();
-
+ 
     // Ctrl+R would reload the app window, so always block it
     if (key === "r") event.preventDefault();
-
+ 
     // Ctrl+N: new page, Ctrl+Shift+N: new group (these work while typing too)
     if (key === "n") {
         event.preventDefault();
@@ -649,7 +655,7 @@ document.addEventListener("keydown", (event) => {
         else addPage(selectedPage?.closest(".page-group") || document.querySelector(".page-group"));
         return;
     }
-
+ 
     // Ctrl+Shift+P: pin or unpin (works while typing too)
     if (key === "p" && event.shiftKey) {
         event.preventDefault();
@@ -657,7 +663,7 @@ document.addEventListener("keydown", (event) => {
         togglePin(originalOf(event.target.isContentEditable ? selectedPage : hovered || selectedPage));
         return;
     }
-
+ 
     // Ctrl+R while typing in the page: rename the page in the header
     if (key === "r" && !event.shiftKey && selectedPage && event.target.closest(".tiptap")) {
         event.preventDefault();
@@ -666,13 +672,13 @@ document.addEventListener("keydown", (event) => {
         renamePageButton.click();
         return;
     }
-
+ 
     if (event.target.isContentEditable || event.target.matches("input")) return;
-
+ 
     const target = hoveredItem || selectedPage;
     if (!target || (key !== "r" && key !== "d")) return;
     event.preventDefault();
-
+ 
     if (target.matches(".page-item, .page-title")) {
         // Pointing at a sidebar page: act on it in the sidebar. Pointing at the header
         // title, or at nothing: act on the open page in the header.
@@ -687,12 +693,12 @@ document.addEventListener("keydown", (event) => {
         if (key === "d") deleteGroupButton.click();
     }
 });
-
+ 
 // Save and load the sidebar
 function updateEmptyState() {
     app.classList.toggle("no-pages", !document.querySelector(".page-item"));
 }
-
+ 
 function saveData() {
     updateEmptyState();
     const data = [];
@@ -712,9 +718,9 @@ function saveData() {
             pages: pages,
         });
     });
-    saveIndex(data);
+    saveIndex(data).catch(() => {}); // a failed save shows in the header and is retried
 }
-
+ 
 async function loadData() {
     const saved = await loadIndex();
     if (saved) {
@@ -732,56 +738,140 @@ async function loadData() {
     }
     if (!document.querySelector(".page-group")) createGroup();
 }
-
+ 
 await loadData();
 renderPinned();
 updateEmptyState();
-
+ 
 // Reopen the last page, or the first one
 const lastPageId = localStorage.getItem("jotter-last-page");
 const startPage = document.querySelector(`.page-group .page-item[data-id="${lastPageId}"]`) || document.querySelector(".page-group .page-item");
 if (startPage) selectPage(startPage);
-
+ 
 new MutationObserver(saveData).observe(sidebarPages, { childList: true, subtree: true, characterData: true, attributes: true });
-
+ 
 // Save page content, half a second after typing stops
-const saveTimers = {};
-
+function saveTyping(id) {
+    clearTimeout(saveTimers[id]);
+    delete saveTimers[id];
+    const html = typedHtml[id];
+    delete typedHtml[id];
+    savePage(id, html).catch((error) => {
+        if (error instanceof ConflictError) keepConflictCopy(id, error.text);
+        // Other errors show in the header and are retried
+    });
+}
+ 
+// Save everything typed so far right now (before switching pages or closing)
+function flushTypingSaves() {
+    Object.keys(saveTimers).forEach(saveTyping);
+}
+ 
 editor.on("update", () => {
     if (!selectedPage) return;
     const id = selectedPage.dataset.id;
-    const html = editor.getHTML();
+    typedHtml[id] = editor.getHTML();
     clearTimeout(saveTimers[id]);
-    saveTimers[id] = setTimeout(() => savePage(id, html), 500);
+    saveTimers[id] = setTimeout(() => saveTyping(id), 500);
 });
-
+ 
+// The page was changed outside Jotter (another computer, through Dropbox for example).
+// Keep that version, and save this one next to it as "Title (conflict copy)".
+async function keepConflictCopy(id, text) {
+    const original = document.querySelector(`.page-group .page-item[data-id="${id}"]`);
+    if (!original) return;
+    const isOpen = selectedPage?.dataset.id === id;
+    if (isOpen) {
+        clearTimeout(saveTimers[id]);
+        delete saveTimers[id];
+        delete typedHtml[id];
+    }
+    const html = isOpen ? editor.getHTML() : text;
+    const title = `${original.querySelector(".page-item-title").textContent} (conflict copy)`;
+    const copyId = crypto.randomUUID();
+    try {
+        await savePage(copyId, html);
+    } catch {
+        // Retried in the background; the copy is still added to the sidebar
+    }
+    const copy = createPage(original.closest(".page-list"), title, undefined, copyId);
+    original.after(copy);
+    if (isOpen) await selectPage(copy);
+    alert(`"${original.querySelector(".page-item-title").textContent}" was changed outside Jotter, for example on another computer.\n\nBoth versions are kept. Your version is saved as "${title}".`);
+}
+ 
+// Save status in the page header: Saved, Saving..., or Not saved + Retry
+const saveStatus = document.querySelector(".save-status");
+const saveStatusText = saveStatus.querySelector(".save-status-text");
+const saveStatusRetry = saveStatus.querySelector(".save-status-retry");
+const saveStatusLabels = { saving: "Saving…", saved: "Saved", error: "Not saved" };
+let savingTimer = null;
+ 
+function showSaveStatus(status, error) {
+    saveStatus.hidden = false;
+    saveStatus.dataset.status = status;
+    saveStatusText.textContent = saveStatusLabels[status];
+    saveStatusRetry.hidden = status !== "error";
+    saveStatus.title = error ? `Jotter keeps trying to save.\n${error}` : "";
+}
+ 
+onSaveStatus((status, error) => {
+    clearTimeout(savingTimer);
+    // Most saves take a few milliseconds: only show "Saving…" when one is slow, so it does not flicker
+    if (status === "saving") savingTimer = setTimeout(() => showSaveStatus(status), 400);
+    else showSaveStatus(status, error);
+});
+ 
+saveStatusRetry.addEventListener("click", retryFailedSaves);
+ 
+// Closing the app: finish saving first. If that fails, ask before closing.
+const appWindow = window.__TAURI__?.window?.getCurrentWindow();
+let closing = false;
+ 
+appWindow?.onCloseRequested(async (event) => {
+    if (closing) return;
+    event.preventDefault();
+    flushTypingSaves();
+    if (!(await flushSaves())) {
+        const closeAnyway = await confirmDialog({
+            title: "Some changes are not saved",
+            message: "Jotter could not save your latest changes. If you close now, they will be lost. Try Retry first, or copy the text somewhere safe.",
+            cancelLabel: "Keep Jotter open",
+            confirmLabel: "Close anyway",
+        });
+        if (!closeAnyway) return;
+    }
+    closing = true;
+    await appWindow.destroy();
+});
+ 
 // Drag and drop: reorder groups (mouse, pen and touch use the same code)
 const dropLine = document.createElement("div");
 dropLine.className = "drop-line";
 dropLine.hidden = true;
 document.body.append(dropLine);
-
+ 
 const dropBox = document.createElement("div");
 dropBox.className = "drop-box";
 dropBox.hidden = true;
 document.body.append(dropBox);
-
+ 
 let pending = null; // pointer is down on a group header or a page, drag has not started yet
 let drag = null;    // something is being dragged
-
+ 
 function allGroups() {
     return [...sidebarPages.querySelectorAll(":scope > .page-group")];
 }
-
+ 
 function otherGroups(group) {
     return allGroups().filter((item) => item !== group);
 }
-
+ 
 sidebarPages.addEventListener("pointerdown", (event) => {
     if (event.button !== 0) return;
     if (app.classList.contains("export-mode")) return;
     if (event.target.closest("button, [contenteditable='true']")) return;
-
+ 
     const page = event.target.closest(".page-item");
     const header = event.target.closest(".page-group-header");
     let item = null;
@@ -791,7 +881,7 @@ sidebarPages.addEventListener("pointerdown", (event) => {
         item = header.closest(".page-group");
     }
     if (!item || allGroups().length < 2) return;
-
+ 
     pending = {
         item,
         kind: item.matches(".page-item") ? "page" : "group",
@@ -806,37 +896,37 @@ sidebarPages.addEventListener("pointerdown", (event) => {
     // Touch: hold for 300 ms to start dragging, so normal scrolling still works
     if (pending.touch) pending.timer = setTimeout(() => pending && beginDrag(), 300);
 });
-
+ 
 function beginDrag() {
     const { item, kind, id, x, y, timer } = pending;
     clearTimeout(timer);
     pending = null;
-
+ 
     const rect = item.getBoundingClientRect();
     const ghost = item.cloneNode(true);
     ghost.classList.add("drag-ghost");
     ghost.setAttribute("aria-hidden", "true");
     ghost.style.width = rect.width + "px";
     app.append(ghost);
-
+ 
     item.classList.add("is-dragging");
     document.body.classList.add("is-dragging-group");
     document.getSelection().removeAllRanges();
     try { sidebarPages.setPointerCapture(id); } catch {}
-
+ 
     drag = { item, kind, ghost, offsetX: x - rect.left, offsetY: y - rect.top, before: null, target: null };
 }
-
+ 
 function moveDrag(x, y) {
     const { item, kind, ghost, offsetX, offsetY } = drag;
     ghost.style.left = x - offsetX + "px";
     ghost.style.top = y - offsetY + "px";
-
+ 
     // Scroll the sidebar when the pointer is near its top or bottom edge
     const area = sidebarPages.getBoundingClientRect();
     if (y < area.top + 40) sidebarPages.scrollTop -= 12;
     if (y > area.bottom - 40) sidebarPages.scrollTop += 12;
-
+ 
     if (kind === "group") {
         // Above the middle of a group's header = drop before it, otherwise after it
         const others = otherGroups(item);
@@ -844,7 +934,7 @@ function moveDrag(x, y) {
             const header = group.querySelector(".page-group-header").getBoundingClientRect();
             return y < header.top + header.height / 2;
         }) || null;
-
+ 
         const lineY = drag.before
             ? drag.before.getBoundingClientRect().top - 8
             : others.at(-1).getBoundingClientRect().bottom + 8;
@@ -860,7 +950,7 @@ function moveDrag(x, y) {
             return y > rect.top - 8 && y < rect.bottom + 8;
         }) || null;
         if (drag.target === current) drag.target = null;
-
+ 
         if (drag.target) {
             const rect = drag.target.getBoundingClientRect();
             dropBox.style.top = rect.top - 4 + "px";
@@ -871,14 +961,14 @@ function moveDrag(x, y) {
         dropBox.hidden = !drag.target;
     }
 }
-
+ 
 function endDrag(drop) {
     if (pending) {
         clearTimeout(pending.timer);
         pending = null;
     }
     if (!drag) return;
-
+ 
     const { item, kind, ghost, before, target } = drag;
     if (drop && kind === "group") {
         if (before) before.before(item);
@@ -896,7 +986,7 @@ function endDrag(drop) {
     document.body.classList.remove("is-dragging-group");
     drag = null;
 }
-
+ 
 document.addEventListener("pointermove", (event) => {
     if (pending) {
         pending.x = event.clientX;
@@ -911,30 +1001,30 @@ document.addEventListener("pointermove", (event) => {
     }
     if (drag) moveDrag(event.clientX, event.clientY);
 });
-
+ 
 document.addEventListener("pointerup", () => endDrag(true));
 document.addEventListener("pointercancel", () => endDrag(false));
 document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") endDrag(false);
 });
-
+ 
 // While dragging: no page scrolling by touch, no long-press menu
 document.addEventListener("touchmove", (event) => {
     if (drag) event.preventDefault();
 }, { passive: false });
-
+ 
 document.addEventListener("contextmenu", (event) => {
     if (pending || drag) event.preventDefault();
 });
-
+ 
 // While dragging: no page scrolling by touch, no long-press menu
 document.addEventListener("touchmove", (event) => {
     if (drag) event.preventDefault();
 }, { passive: false });
-
+ 
 document.addEventListener("contextmenu", (event) => {
     if (pending || drag) event.preventDefault();
 });
-
+ 
 // Look for a new version a few seconds after the app starts
 setTimeout(() => checkForUpdates(), 3000);
