@@ -373,17 +373,41 @@ hr {
     }
     .page-title {
         flex: 1;
+        min-width: 0;
         font-size: var(--font-size-lg);
         font-weight: 400;
         line-height: 1.5rem;
     }
-
-    /* Page */
-    .a4-page {
+    /* Folder name before the page title: for reference only, it cannot be edited */
+    .page-folder {
         flex-shrink: 0;
+        max-width: 40%;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        font-size: var(--font-size-lg);
+        line-height: 1.5rem;
+        color: var(--color-text-secondary);
+        user-select: none;
+        &:empty {
+            display: none;
+        }
+        &::after {
+            content: " >";
+        }
+    }
+
+    /* Page: one long page, like Notion. Print, PDF and Word split it into A4 pages. */
+    .page-body {
+        flex-shrink: 0;
+        width: 100%;
+        max-width: 50rem;
         margin-inline: auto;
+        padding: var(--space-40);
+        box-sizing: border-box;
     }
     .page-editor .tiptap {
+        min-height: calc(100vh - 14rem); /* click anywhere below the text to keep writing */
         background-color: none!important;
         outline: none;
     }
@@ -816,9 +840,9 @@ hr {
         height: auto;
     }
     .main-content,
-    .a4-page,
+    .page-body,
     .page-editor,
-    .tiptap.rm-with-pagination {
+    .tiptap {
         width: auto !important;
         max-width: none !important;
         min-height: 0 !important;
@@ -827,18 +851,13 @@ hr {
         border: none !important;
         overflow: visible !important;
     }
-    .rm-pages-wrapper,
-    .rm-page-header,
-    .rm-page-footer {
-        display: none !important;
-    }
     .tiptap {
         print-color-adjust: exact;
     }
     .page-zoom {
     display: none !important;
 }
-    .a4-page {
+    .page-body {
         zoom: 1 !important;
     }
 }
@@ -938,14 +957,14 @@ li[data-checked="true"] > div {
     text-decoration: line-through;
 }
 
-/* Pagination colors follow the theme */
-.tiptap.rm-with-pagination {
-    --rm-page-gap-border-color: var(--color-border-default) !important;
+/* Text colors follow the theme. The chosen color is kept, but in light mode a color
+   that is too light is made darker, and in dark mode a color that is too dark is made
+   lighter, so colored text is always readable. (--text-color is set by editor.js.) */
+.tiptap [style*="--text-color"] {
+    color: oklch(from var(--text-color) min(l, 0.55) c h) !important;
 }
-.rm-pagination-gap {
-    background-color: var(--color-background-page) !important;
-    border-left-color: var(--color-background-page) !important;
-    border-right-color: var(--color-background-page) !important;
+:root[data-theme="dark"] .tiptap [style*="--text-color"] {
+    color: oklch(from var(--text-color) max(l, 0.72) c h) !important;
 }
 
 /* Narrow windows: the sidebar opens over the content */
@@ -1199,23 +1218,22 @@ body.is-dragging-group * {
     overflow-x: auto;
 }
 
-/* The pagination library makes every table "display: contents", which gives it no box,
-   no width, and ignores its column widths. Put it back to a normal table. */
-.tiptap.rm-with-pagination table {
+/* Tables fill the page width and keep their column widths */
+.tiptap table {
     display: table !important;
     width: 100%;
     table-layout: fixed;
     border-collapse: collapse;
 }
 
-.tiptap.rm-with-pagination table tbody {
+.tiptap table tbody {
     display: table-row-group !important;
     max-height: none;
     overflow: visible;
 }
 
-.tiptap.rm-with-pagination table tr td,
-.tiptap.rm-with-pagination table tr th {
+.tiptap table tr td,
+.tiptap table tr th {
     word-break: normal;
     overflow-wrap: anywhere;
 }
@@ -1247,7 +1265,7 @@ body.is-dragging-group * {
    draws only its own right and bottom border, and the table draws the top and left edge,
    so no two borders overlap and none can go missing. */
 @media print {
-    .tiptap.rm-with-pagination table {
+    .tiptap table {
         border-collapse: separate !important;
         border-spacing: 0;
         border-top: 1px solid var(--color-text-disabled);

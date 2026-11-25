@@ -39,6 +39,23 @@ function toHex(color) {
     return value.toUpperCase();
 }
  
+// Word pages are white: a text color that is too light to read (picked in dark mode)
+// is made darker, the same way the app does in light mode
+function readableOnWhite(hex) {
+    if (!hex) return hex;
+    let rgb = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16));
+    const luminance = (c) => {
+        const [r, g, b] = c.map((v) => {
+            v /= 255;
+            return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    // Contrast with white of at least 4.5 : 1
+    while (1.05 / (luminance(rgb) + 0.05) < 4.5) rgb = rgb.map((v) => Math.floor(v * 0.9));
+    return rgb.map((v) => v.toString(16).padStart(2, "0")).join("").toUpperCase();
+}
+
 // Font size from a style such as "18px" or "12pt", in half-points (what Word uses)
 function toHalfPoints(size) {
     const match = /^([\d.]+)(px|pt)$/.exec(size || "");
@@ -80,7 +97,7 @@ function textRun(text, format) {
 function applyStyle(node, format) {
     const style = node.style;
     if (!style) return;
-    const color = toHex(style.color);
+    const color = readableOnWhite(toHex(style.color));
     if (color) format.color = color;
     const size = toHalfPoints(style.fontSize);
     if (size) format.size = size;
