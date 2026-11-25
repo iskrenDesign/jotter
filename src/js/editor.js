@@ -1,4 +1,4 @@
-import { Editor, StarterKit, TextAlign, TaskList, TaskItem, TextStyle, FontSize, Color, Image, TableKit, PaginationPlus } from "./vendor/tiptap.js";
+import { Editor, StarterKit, TextAlign, TaskList, TaskItem, TextStyle, FontSize, Color, Image, TableKit } from "./vendor/tiptap.js";
 import { placeMenu } from "./menus.js";
 import { VideoCard, videoProvider, getVideoInfo, blockAlign } from "./video-card.js";
 import { createTableActions, setupTableHandles } from "./table-handles.js";
@@ -38,6 +38,31 @@ const ResizableImage = Image.extend({
         };
     },
 });
+// Text color that follows the theme.
+// The color is saved as before (style="color: ..."), and is also given to the CSS as --text-color.
+// style.css uses --text-color to make the color darker in light mode or lighter in dark mode
+// when it would be hard to read. Notes that already have colors keep working.
+const ThemeColor = Color.extend({
+    addGlobalAttributes() {
+        return [{
+            types: this.options.types,
+            attributes: {
+                color: {
+                    default: null,
+                    parseHTML: (element) => {
+                        const style = element.getAttribute("style") || "";
+                        const match = style.match(/(?:^|;)\s*color\s*:\s*([^;]+)/i);
+                        return match ? match[1].trim().replace(/['"]+/g, "") : null;
+                    },
+                    renderHTML: (attributes) => attributes.color
+                        ? { style: `color: ${attributes.color}; --text-color: ${attributes.color}` }
+                        : {},
+                },
+            },
+        }];
+    },
+});
+
 export const editor = new Editor({
     element: document.querySelector(".page-editor"),
     extensions: [
@@ -50,8 +75,8 @@ export const editor = new Editor({
         TaskItem.configure({ nested: true }),
         TextStyle,
         FontSize,
-        Color,
-            ResizableImage.configure({
+        ThemeColor,
+        ResizableImage.configure({
             allowBase64: true,
             // Drag the corners of a picture to make it bigger or smaller
             resize: {
@@ -64,23 +89,6 @@ export const editor = new Editor({
         }),
         TableKit.configure({ table: { resizable: true, handleWidth: 6, cellMinWidth: 60 } }),
         VideoCard,
-        PaginationPlus.configure({
-            pageWidth: 794,
-            pageHeight: 1123,
-            pageGap: 24,
-            pageGapBorderSize: 0,
-            pageBreakBackground: "#FAFAFA",
-            marginTop: 64,
-            marginBottom: 64,
-            marginLeft: 64,
-            marginRight: 64,
-            contentMarginTop: 0,
-            contentMarginBottom: 0,
-            headerLeft: "",
-            headerRight: "",
-            footerLeft: "",
-            footerRight: "{page}",
-        }),
     ],
     // Created editable on purpose: TipTap only adds table column resizing to an editor that starts
     // editable. It is switched to read-only again right after it is created (see below).
@@ -418,7 +426,7 @@ async function insertVideoCard(url, provider) {
 
 // Page zoom
 const ZOOM_STEPS = [50, 60, 70, 80, 90, 100, 110, 120, 150, 175, 200];
-const pageElement = document.querySelector(".a4-page");
+const pageElement = document.querySelector(".page-body");
 const zoomValue = document.querySelector(".page-zoom-value");
 let zoom = Number(localStorage.getItem("jotter-zoom")) || 100;
 

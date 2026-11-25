@@ -17,6 +17,7 @@ const groupMenu = document.querySelector("#group-menu");
 const pageMenu = document.querySelector("#page-menu");
 const moveMenu = document.querySelector("#move-menu");
 const pageTitle = document.querySelector(".page-title");
+const pageFolder = document.querySelector(".page-folder");
 const headerPageMenu = document.querySelector(".header-page-menu");
 const searchInput = document.querySelector(".search-input");
  
@@ -116,6 +117,7 @@ async function selectPage(page) {
     selectedPage = page;
     document.querySelectorAll(`.page-item[data-id="${page.dataset.id}"]`).forEach((item) => item.setAttribute("aria-current", "page"));
     pageTitle.textContent = page.querySelector(".page-item-title").textContent;
+    showFolderName();
     headerPageMenu.hidden = false;
     flushTypingSaves();
     const content = await loadPage(page.dataset.id);
@@ -125,9 +127,16 @@ async function selectPage(page) {
     localStorage.setItem("jotter-last-page", page.dataset.id);
 }
  
+// The folder of the open page, shown before the page title in the header (read-only)
+function showFolderName() {
+    const group = selectedPage?.closest(".page-group");
+    pageFolder.textContent = group ? group.querySelector(".page-group-title").textContent : "";
+}
+
 function clearSelection() {
     selectedPage = null;
     pageTitle.textContent = "";
+    showFolderName();
     headerPageMenu.hidden = true;
     editor.commands.clearContent();
     editor.setEditable(false);
@@ -748,7 +757,11 @@ const lastPageId = localStorage.getItem("jotter-last-page");
 const startPage = document.querySelector(`.page-group .page-item[data-id="${lastPageId}"]`) || document.querySelector(".page-group .page-item");
 if (startPage) selectPage(startPage);
  
-new MutationObserver(saveData).observe(sidebarPages, { childList: true, subtree: true, characterData: true, attributes: true });
+// When the sidebar changes (a folder is renamed, a page is moved): save it and update the folder name in the header
+new MutationObserver(() => {
+    saveData();
+    showFolderName();
+}).observe(sidebarPages, { childList: true, subtree: true, characterData: true, attributes: true });
  
 // Save page content, half a second after typing stops
 function saveTyping(id) {
