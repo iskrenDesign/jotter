@@ -29,6 +29,15 @@ function escapeXml(text) {
         .replace(/"/g, "&quot;");
 }
  
+// Quote backgrounds: the same colors at 96% lightness
+const QUOTE_FILLS = { grey: "F5F5F5", brown: "F8F4F2", orange: "FEF5EC", yellow: "FBF6EE", green: "F2F8F5", blue: "EFF6FA", purple: "F5F2F8", pink: "FAF0F5", red: "FBEFEE" };
+
+// Quote line colors, the same as the light theme in style.css
+const QUOTE_COLORS = {
+    grey: "9B9A97", brown: "9F6B53", orange: "D9730D", yellow: "CB912F", green: "448361",
+    blue: "337EA9", purple: "9065B0", pink: "C14C8A", red: "D44C47",
+};
+
 function toHex(color) {
     if (!color) return null;
     const rgb = color.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
@@ -176,11 +185,12 @@ function makeParagraph(content, opts, { style, jc, border } = {}) {
     if (marker?.numId) pPr += `<w:numPr><w:ilvl w:val="${marker.level}"/><w:numId w:val="${marker.numId}"/></w:numPr>`;
  
     let borders = "";
-    if (opts.quote) borders += '<w:left w:val="single" w:sz="12" w:space="10" w:color="BFBFBF"/>';
+    if (opts.quote) borders += `<w:left w:val="single" w:sz="12" w:space="10" w:color="${opts.quoteColor || "BFBFBF"}"/>`;
     if (border === "hr") borders += '<w:bottom w:val="single" w:sz="6" w:space="1" w:color="BFBFBF"/>';
     if (borders) pPr += `<w:pBdr>${borders}</w:pBdr>`;
  
     if (opts.shade) pPr += '<w:shd w:val="clear" w:color="auto" w:fill="F2F2F2"/>';
+    else if (opts.quoteFill) pPr += `<w:shd w:val="clear" w:color="auto" w:fill="${opts.quoteFill}"/>`;
     if (opts.tight) pPr += '<w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/>';
     else if (opts.level !== undefined) pPr += '<w:spacing w:after="60"/>';
  
@@ -266,7 +276,9 @@ function convertBlock(node, ctx, opts) {
         return [makeParagraph(inlineRuns(node.childNodes, ctx, format), opts, { style: `Heading${tag[1]}`, jc: alignOf(node) })];
     }
     if (tag === "UL" || tag === "OL") return convertList(node, ctx, opts);
-    if (tag === "BLOCKQUOTE") return convertNodes(node.childNodes, ctx, { ...opts, quote: true });
+    if (tag === "BLOCKQUOTE") {
+        return convertNodes(node.childNodes, ctx, { ...opts, quote: true, quoteColor: QUOTE_COLORS[node.getAttribute("data-color")], quoteFill: QUOTE_FILLS[node.getAttribute("data-color")] });
+    }
     if (tag === "HR") return [makeParagraph("", opts, { border: "hr" })];
     if (tag === "TABLE") return convertTable(node, ctx);
     if (tag === "PRE") {

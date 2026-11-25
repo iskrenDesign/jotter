@@ -2,6 +2,7 @@ import { Editor, StarterKit, TextAlign, TaskList, TaskItem, TextStyle, FontSize,
 import { placeMenu } from "./menus.js";
 import { VideoCard, videoProvider, getVideoInfo, blockAlign } from "./video-card.js";
 import { createTableActions, setupTableHandles } from "./table-handles.js";
+import { QuoteColor, setupQuoteColor } from "./quote-color.js";
 
 // In the app, open links in the user's browser; in the browser, a new tab
 const openLink = window.__TAURI__?.opener?.openUrl ?? ((url) => window.open(url, "_blank"));
@@ -76,6 +77,7 @@ export const editor = new Editor({
         TextStyle,
         FontSize,
         ThemeColor,
+        QuoteColor,
         ResizableImage.configure({
             allowBase64: true,
             // Drag the corners of a picture to make it bigger or smaller
@@ -115,6 +117,17 @@ export const editor = new Editor({
 });
 
 editor.setEditable(false, false);
+
+// Empty page: clicking into it starts with a Header (H1).
+// Leaving it empty brings the grey hint back.
+editor.on("focus", () => {
+    if (editor.isEmpty && !editor.isActive("heading", { level: 1 })) {
+        editor.commands.setHeading({ level: 1 });
+    }
+});
+editor.on("blur", () => {
+    if (editor.isEmpty) editor.commands.clearContent();
+});
 
 // Toolbar
 const toolbar = document.querySelector(".toolbar");
@@ -236,6 +249,9 @@ tableButton.addEventListener("click", () => {
 });
 
 setupTableHandles(editor, placeMenu, tableActions);
+
+// Quote line color: a small button next to a quote
+setupQuoteColor(editor, placeMenu);
 
 // Text style menu
 const textStyleMenu = document.querySelector("#text-style-menu");
@@ -412,7 +428,9 @@ function updateToolbar() {
 
     const color = editor.getAttributes("textStyle").color;
     colorSwatch.style.backgroundColor = color || "";
-    colorInput.value = color && color.startsWith("#") ? color : "#1f1f1f";
+    colorSwatch.style.setProperty("--text-color", color || "");
+    const themeText = document.documentElement.dataset.theme === "dark" ? "#fafafa" : "#1f1f1f";
+    colorInput.value = color && color.startsWith("#") ? color : themeText;
     colorResetButton.disabled = !editor.isEditable || !selectionHasColor();
 }
 

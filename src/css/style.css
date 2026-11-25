@@ -22,7 +22,7 @@
     --color-background-overlay: #242528CC;
     /* Surface */
     --color-surface-transparent: #0f0e0e1A;
-    --color-surface-default: #cccccc;
+    --color-surface-default: #dfdfdf;
     --color-surface-subtle: #f8f8f8;
     --color-surface-brand: #4E61F6;
     --color-surface-brand-hover: #3745AF;
@@ -212,7 +212,7 @@ hr {
         padding: var(--space-12) var(--space-12);
         border: 1px solid var(--color-border-default);
         border-radius: var(--radius-8);
-        background-color: var(--color-surface-transparent);
+        background-color: var(--color-surface-default);
         &:focus-within {
             border-color: var(--color-border-brand);
         }
@@ -428,7 +428,7 @@ hr {
         margin-inline: auto;
         padding: var(--space-4);
         overflow-x: auto;
-        background-color: var(--color-background-page-subtle);
+        background-color: var(--color-background-page);
         border: 1px solid var(--color-border-default);
         border-radius: var(--radius-8);
     }
@@ -869,6 +869,7 @@ hr {
         font-size: 2rem;
         letter-spacing: -0.0175rem;
         font-weight: 800;
+        margin: 0 0 var(--space-16);
     }
     h2 {
         font-size: 1.5rem;
@@ -884,9 +885,10 @@ hr {
     }
     blockquote {
         margin: var(--space-16) 0;
-        padding: var(--space-4) 0 var(--space-4) var(--space-16);
-        border-left: 4px solid var(--color-text-disabled);
-        color: var(--color-text-secondary);
+        padding: var(--space-16) var(--space-12);
+        border-left: 4px solid var(--quote-color, var(--color-text-disabled));
+        border-radius: 0 var(--radius-8) var(--radius-8) 0;
+        color: var(--color-text-primary);
         p:last-child {
             margin-bottom: 0;
         }
@@ -964,7 +966,117 @@ li[data-checked="true"] > div {
     color: oklch(from var(--text-color) min(l, 0.55) c h) !important;
 }
 :root[data-theme="dark"] .tiptap [style*="--text-color"] {
-    color: oklch(from var(--text-color) max(l, 0.72) c h) !important;
+    color: oklch(from var(--text-color) max(l, 0.72, 1 - l) c h) !important;
+}
+
+.toolbar-color-swatch[style*="--text-color"] {
+    background-color: oklch(from var(--text-color) min(l, 0.55) c h) !important;
+}
+:root[data-theme="dark"] .toolbar-color-swatch[style*="--text-color"] {
+    background-color: oklch(from var(--text-color) max(l, 0.72, 1 - l) c h) !important;
+}
+
+/* Quote line colors. Saved as a name on the quote, so each theme shows its own shade. */
+:root {
+    --quote-grey: #9B9A97;
+    --quote-grey-background: #F5F5F5;
+    --quote-brown: #9F6B53;
+    --quote-brown-background: #F8F4F2;
+    --quote-orange: #D9730D;
+    --quote-orange-background: #FEF5EC;
+    --quote-yellow: #CB912F;
+    --quote-yellow-background: #FBF6EE;
+    --quote-green: #448361;
+    --quote-green-background: #F2F8F5;
+    --quote-blue: #337EA9;
+    --quote-blue-background: #EFF6FA;
+    --quote-purple: #9065B0;
+    --quote-purple-background: #F5F2F8;
+    --quote-pink: #C14C8A;
+    --quote-pink-background: #FAF0F5;
+    --quote-red: #D44C47;
+    --quote-red-background: #FBEFEE;
+}
+:root[data-theme="dark"] {
+    --quote-grey: #9B9B9B;
+    --quote-grey-background: #212121;
+    --quote-brown: #BA856F;
+    --quote-brown-background: #271F1B;
+    --quote-orange: #C77D48;
+    --quote-orange-background: #2A2018;
+    --quote-yellow: #CA9849;
+    --quote-yellow-background: #2A2318;
+    --quote-green: #529E72;
+    --quote-green-background: #1C2620;
+    --quote-blue: #5E87C9;
+    --quote-blue-background: #191F29;
+    --quote-purple: #9D68D3;
+    --quote-purple-background: #21182A;
+    --quote-pink: #D15796;
+    --quote-pink-background: #2B1821;
+    --quote-red: #DF5452;
+    --quote-red-background: #2D1616;
+}
+[data-color="grey"]   { --quote-color: var(--quote-grey); --quote-background: var(--quote-grey-background); }
+[data-color="brown"]  { --quote-color: var(--quote-brown); --quote-background: var(--quote-brown-background); }
+[data-color="orange"] { --quote-color: var(--quote-orange); --quote-background: var(--quote-orange-background); }
+[data-color="yellow"] { --quote-color: var(--quote-yellow); --quote-background: var(--quote-yellow-background); }
+[data-color="green"]  { --quote-color: var(--quote-green); --quote-background: var(--quote-green-background); }
+[data-color="blue"]   { --quote-color: var(--quote-blue); --quote-background: var(--quote-blue-background); }
+[data-color="purple"] { --quote-color: var(--quote-purple); --quote-background: var(--quote-purple-background); }
+[data-color="pink"]   { --quote-color: var(--quote-pink); --quote-background: var(--quote-pink-background); }
+[data-color="red"]    { --quote-color: var(--quote-red); --quote-background: var(--quote-red-background); }
+
+/* Colored quotes also get a soft background in the same color
+   (96% lightness in light mode, a dark version in dark mode) */
+.tiptap blockquote[data-color] {
+    padding-right: var(--space-16);
+    border-radius: 0 var(--radius-8) var(--radius-8) 0;
+    background-color: var(--quote-background);
+}
+
+/* The small button to the left of a quote */
+.quote-color-handle {
+    position: fixed;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-4);
+    background: none;
+    color: var(--color-icon-default);
+    cursor: pointer;
+    &:hover {
+        background-color: var(--color-surface-hover);
+    }
+    &[hidden] {
+        display: none;
+    }
+}
+.quote-color-menu {
+    width: 12rem;
+    .menu-item {
+        gap: var(--space-8);
+        padding: var(--space-8) var(--space-12);
+    }
+}
+.quote-color-dot {
+    width: 4px;
+    height: 1rem;
+    border-radius: 2px;
+    background-color: var(--quote-color, var(--color-text-disabled));
+}
+.quote-color-menu [data-color]:not([data-color="default"]) .quote-color-dot {
+    outline: 4px solid var(--quote-background);
+}
+@media print {
+    .quote-color-handle {
+        display: none !important;
+    }
 }
 
 /* Narrow windows: the sidebar opens over the content */
@@ -1571,5 +1683,21 @@ body.is-dragging-group * {
     }
     .update-progress::-webkit-progress-value {
         background-color: Highlight;
+    }
+}
+
+/* Empty page: a grey hint in heading size, like Notion. It disappears when you start typing. */
+.tiptap[contenteditable="true"]:not(:focus) > p:only-child:has(> br.ProseMirror-trailingBreak:only-child)::before {
+    content: "What is on your mind today?";
+    float: left;
+    height: 0;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-text-disabled);
+    pointer-events: none;
+}
+@media print {
+    .tiptap > p::before {
+        display: none;
     }
 }
